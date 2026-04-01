@@ -373,11 +373,11 @@ app.get('/api/news', async (req, res) => {
 
 // ── Démo data si pas de clé NewsAPI ─────────────────────────
 const DEMO_NEWS = [
-  { title: "Instagram teste une nouvelle interface pour les Reels", source: "Social Media Today", publishedAt: new Date().toISOString(), description: "Meta expérimente une refonte complète de l'interface Reels pour améliorer l'engagement.", url: "#", query: "demo" },
-  { title: "TikTok : l'algorithme favorise désormais les vidéos de moins de 30 secondes", source: "Le Journal du CM", publishedAt: new Date(Date.now()-86400000).toISOString(), description: "Analyse des nouvelles données de performance sur TikTok en 2026.", url: "#", query: "demo" },
-  { title: "LinkedIn : les posts longs font leur grand retour", source: "BDM", publishedAt: new Date(Date.now()-172800000).toISOString(), description: "La portée organique des posts de plus de 1200 caractères explose sur LinkedIn.", url: "#", query: "demo" },
-  { title: "Facebook Ads : le CPM moyen augmente de 18% en 2026", source: "Siècle Digital", publishedAt: new Date(Date.now()-259200000).toISOString(), description: "Analyse des benchmarks publicitaires Meta pour le premier trimestre 2026.", url: "#", query: "demo" },
-  { title: "YouTube Shorts : nouvelles règles de monétisation", source: "Createurs.fr", publishedAt: new Date(Date.now()-345600000).toISOString(), description: "Google annonce des changements majeurs dans le programme de monétisation des Shorts.", url: "#", query: "demo" },
+  { title: "Instagram teste une nouvelle interface pour les Reels", source: "Social Media Today", publishedAt: new Date().toISOString(), description: "Meta expérimente une refonte complète de l'interface Reels pour améliorer l'engagement.", url: "https://www.socialmediatoday.com/news/instagram-reels-interface", query: "demo" },
+  { title: "TikTok : l'algorithme favorise désormais les vidéos de moins de 30 secondes", source: "Le Journal du CM", publishedAt: new Date(Date.now()-86400000).toISOString(), description: "Analyse des nouvelles données de performance sur TikTok en 2026.", url: "https://www.journalducm.com/tiktok-algorithme-videos-courtes/", query: "demo" },
+  { title: "LinkedIn : les posts longs font leur grand retour", source: "BDM", publishedAt: new Date(Date.now()-172800000).toISOString(), description: "La portée organique des posts de plus de 1200 caractères explose sur LinkedIn.", url: "https://www.blogdumoderateur.com/linkedin-posts-longs-portee-organique/", query: "demo" },
+  { title: "Facebook Ads : le CPM moyen augmente de 18% en 2026", source: "Siècle Digital", publishedAt: new Date(Date.now()-259200000).toISOString(), description: "Analyse des benchmarks publicitaires Meta pour le premier trimestre 2026.", url: "https://siecledigital.fr/facebook-ads-cpm-2026/", query: "demo" },
+  { title: "YouTube Shorts : nouvelles règles de monétisation", source: "Createurs.fr", publishedAt: new Date(Date.now()-345600000).toISOString(), description: "Google annonce des changements majeurs dans le programme de monétisation des Shorts.", url: "https://www.createurs.fr/youtube-shorts-monetisation-2026/", query: "demo" },
 ];
 
 // ══════════════════════════════════════════════════════════════
