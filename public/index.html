@@ -794,9 +794,7 @@ td{padding:10px 14px;font-size:13px;}
           <div class="set-ni on" onclick="switchSet('general',this)">Général</div>
           <div class="set-ni" onclick="switchSet('brand',this)">Brand Voice</div>
           <div class="set-ni" onclick="switchSet('api',this)">API & Intégrations</div>
-          <div class="set-ni" onclick="switchSet('glossaire',this)">Glossaire</div>
-          <div class="set-ni" onclick="switchSet('partenaires',this)">Partenaires</div>
-          <div class="set-ni" onclick="switchSet('ticker',this)">Ticker</div>
+
         </div>
         <div>
           <div class="set-panel" id="set-general"><div class="set-section">Général</div><div class="vgap"><div class="field"><div class="lbl">Nom du site</div><input class="inp" value="VU Magazine" readonly></div><div class="field"><div class="lbl">URL production</div><input class="inp" value="https://vu-magazine.com" readonly></div></div></div>
@@ -804,51 +802,60 @@ td{padding:10px 14px;font-size:13px;}
 Les Reels courts restent le levier le plus efficace.
 Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button class="btn p" onclick="toast('Brand Voice sauvegardé ✅')">💾 Sauvegarder</button></div></div>
           <div class="set-panel" id="set-api" style="display:none"><div class="set-section">API & Intégrations</div><div class="vgap"><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Claude API</div><div style="font-size:11px;color:var(--ink3)">Variable Railway : ANTHROPIC_API_KEY</div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">NewsAPI</div><div style="font-size:11px;color:var(--ink3)">Variable : NEWS_API_KEY · <a href="https://newsapi.org" target="_blank" style="color:var(--blue)">newsapi.org</a></div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Unsplash</div><div style="font-size:11px;color:var(--ink3)">Variable : UNSPLASH_KEY · <a href="https://unsplash.com/developers" target="_blank" style="color:var(--blue)">unsplash.com</a></div></div></div></div>
-          <div class="set-panel" id="set-glossaire">
-  <div class="set-section" class="row-between">
-    Glossaire Social Media
-    <button class="btn p sm" onclick="openGlossModal()">+ Nouveau terme</button>
-  </div>
-  <div class="tbl-wrap">
-    <div class="tbl-tb">
-      <div class="srch">
-        <span class="srch-ico">🔍</span>
-        <input class="srch-inp" type="text" placeholder="Rechercher un terme…" oninput="filterGlossary(this.value)">
-      </div>
-    </div>
-    <div id="glossary-list"><div class="loading"><div class="spin"></div></div></div>
-  </div>
-</div>
+
           
-          <div class="set-panel" id="set-partenaires">
-  <div class="set-section" class="row-between">
-    Partenaires &amp; Affiliés
-    <button class="btn p sm" onclick="openPartnerModal()">+ Nouveau partenaire</button>
-  </div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>Nom</th><th>Catégorie</th><th>Badge</th><th>Note</th><th>Statut</th><th>Actions</th></tr></thead>
-      <tbody id="partners-list"><tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr></tbody>
-    </table>
-  </div>
-</div>
+
           
-          <div class="set-panel" id="set-ticker">
-  <div class="set-section" class="row-between">
-    Ticker live
-    <div style="display:flex;gap:6px">
-      <button class="btn g sm" onclick="addTickerItem()">+ Ajouter</button>
-      <button class="btn p sm" onclick="saveTicker()">💾 Copier code</button>
-    </div>
-  </div>
-  <div style="font-size:12px;color:var(--ink3);margin-bottom:12px">8 items max · Affiché en bandeau sur VU Magazine</div>
-  <div id="ticker-items" class="vgap" style="gap:6px"></div>
-  <div class="code-hint">
-    ℹ️ Cliquez "Copier code" puis collez dans <code>server.js</code> → <code>res.locals.ticker</code>
-  </div>
-</div>
+
           
         </div>
+      </div>
+    </div>
+
+
+    <!-- GLOSSAIRE -->
+    <div class="page" id="pg-glossaire">
+      <div class="sec-hd">
+        <div><div class="sec-ttl">Glossaire <span>Social Media</span></div><div class="sec-sub">Gérer les termes du glossaire VU Magazine</div></div>
+        <button class="btn p" onclick="openGlossModal()">+ Nouveau terme</button>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-tb">
+          <div class="srch">
+            <span class="srch-ico">🔍</span>
+            <input class="srch-inp" type="text" placeholder="Rechercher un terme…" oninput="filterGlossary(this.value)">
+          </div>
+        </div>
+        <div id="glossary-list"><div class="loading"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+    <!-- PARTENAIRES -->
+    <div class="page" id="pg-partenaires">
+      <div class="sec-hd">
+        <div><div class="sec-ttl">Partenaires <span>&amp; Affiliés</span></div><div class="sec-sub">Gérer les partenaires et liens affiliés</div></div>
+        <button class="btn p" onclick="openPartnerModal()">+ Nouveau partenaire</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Nom</th><th>Catégorie</th><th>Badge</th><th>Note</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="partners-list"><tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TICKER -->
+    <div class="page" id="pg-ticker">
+      <div class="sec-hd">
+        <div><div class="sec-ttl">Ticker <span>live</span></div><div class="sec-sub">Bandeau défilant affiché sur VU Magazine · 8 items max</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn g" onclick="addTickerItem()">+ Ajouter</button>
+          <button class="btn p" onclick="saveTicker()">💾 Copier code</button>
+        </div>
+      </div>
+      <div id="ticker-items" class="vgap" style="gap:6px"></div>
+      <div class="code-hint" style="margin-top:16px">
+        ℹ️ Cliquez "Copier code" puis collez dans <code>server.js</code> → <code>res.locals.ticker</code>
       </div>
     </div>
 
@@ -998,7 +1005,7 @@ const S = {
 };
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const MONTHS_S = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-const PAGE_NAMES = {dashboard:'Dashboard', glossaire:'Glossaire Social Media', partenaires:'Partenaires & Affiliés', ticker:'Ticker live', veille:'Veille', planning:'Planning éditorial', 'new-article':'Nouvel article', optimize:'Optimiser', linkedin:'Agent LinkedIn', articles:'Articles', media:'Médiathèque', analytics:'Dashboard SEO', settings:'Paramètres', agents:'Agents IA'};
+const PAGE_NAMES = {dashboard:'Dashboard', glossaire:'Glossaire Social Media', partenaires:'Partenaires & Affiliés', ticker:'Ticker live', veille:'Veille', planning:'Planning éditorial', 'new-article':'Nouvel article', optimize:'Optimiser', linkedin:'Agent LinkedIn', articles:'Articles', media:'Médiathèque', analytics:'Dashboard SEO', glossaire:'Glossaire Social Media', partenaires:'Partenaires & Affiliés', ticker:'Ticker live', settings:'Paramètres', agents:'Agents IA'};
 
 // ─ API ────────────────────────────────────────────────────────────
 async function api(m, u, b) {
@@ -1054,6 +1061,9 @@ function go(page) {
   else if (page==='agents') initAg();
   else if (page==='media') initMedia();
   else if (page==='analytics') loadAnalytics();
+  else if (page==='glossaire') loadGlossary();
+  else if (page==='partenaires') loadPartners();
+  else if (page==='ticker') renderTicker();
 }
 
 // ─ DATE ──────────────────────────────────────────────────────────
@@ -1676,7 +1686,7 @@ function switchSet(key,el){
   document.getElementById(`set-${key}`)?.style.removeProperty('display');
   if(key==='glossaire') loadGlossary();
   else if(key==='partenaires') loadPartners();
-  else if(key==='ticker') renderTicker();
+  // glossaire/partenaires/ticker → pages dédiées
 }
 
 // ─ MODAL / UTILS ─────────────────────────────────────────────────
