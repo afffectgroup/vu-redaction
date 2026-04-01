@@ -608,7 +608,15 @@ td{padding:10px 14px;font-size:13px;}
         <div class="vgap">
           <div class="card"><div class="card-t">Article à optimiser</div>
             <select class="sel" id="opt-sel" onchange="loadOptArt()"><option value="">-- Sélectionner un article --</option></select>
-            <div id="opt-info" style="display:none;margin-top:10px"><div style="font-size:13px;font-weight:500" id="opt-ttl"></div><div style="font-size:11px;color:var(--ink3);font-family:var(--mono)" id="opt-slug"></div></div>
+            <div id="opt-info" style="display:none;margin-top:10px">
+              <div style="font-size:13px;font-weight:500" id="opt-ttl"></div>
+              <div style="font-size:11px;color:var(--ink3);font-family:var(--mono);margin-bottom:10px" id="opt-slug"></div>
+              <div class="field" style="margin-bottom:8px"><div class="lbl">Titre</div><input class="inp" type="text" id="opt-edit-title"></div>
+              <div class="field" style="margin-bottom:8px"><div class="lbl">Extrait</div><textarea class="ta" id="opt-edit-exc" style="min-height:60px"></textarea></div>
+              <div class="field" style="margin-bottom:8px"><div class="lbl">Contenu</div><textarea class="ta" id="opt-edit-content" style="min-height:220px;font-size:13px;line-height:1.7"></textarea></div>
+              <div class="field" style="margin-bottom:10px"><div class="lbl">Meta description</div><input class="inp" type="text" id="opt-edit-meta"></div>
+              <button class="btn p" style="width:100%" onclick="saveOptArt()">💾 Sauvegarder les modifications</button>
+            </div>
           </div>
           <div class="card"><div class="card-t">⬡ Agents d'optimisation</div>
             <div class="g2">
@@ -1091,7 +1099,7 @@ async function loadDash() {
     document.getElementById('dash-recent').innerHTML = (d.recent||[]).map(a => `
       <tr><td class="td-main">${esc(a.title)}<small>${a.slug}</small></td>
       <td><span class="badge ${a.status==='published'?'b-pub':a.status==='scheduled'?'b-sch':'b-dft'}">${a.status==='published'?'✅':a.status==='scheduled'?'⏰':'📝'}</span></td>
-      <td><button class="btn g sm" onclick="editArt(${a.id})">Éditer</button></td></tr>`).join('');
+      <td><button class="btn g sm" onclick="editArt(${a.id},'${a.status}')">Éditer</button></td></tr>`).join('');
     // News preview
     const dn = document.getElementById('dash-news');
     if (dn) {
@@ -1143,7 +1151,7 @@ async function loadArts() {
       <td style="font-size:12px"><span style="color:${a.category_color||'#888'}">●</span> ${esc(a.category_name||'—')}</td>
       <td style="font-family:var(--mono);font-size:12px;color:var(--ink3)">${parseInt(a.view_count||0).toLocaleString('fr')}</td>
       <td style="font-size:12px;color:var(--ink3)">${fmtFr(a.published_at)}</td>
-      <td><div class="row-acts"><button class="btn g sm" onclick="editArt(${a.id})">Éditer</button><button class="btn g sm" onclick="dupArt(${a.id})" title="Dupliquer">⧉</button><a href="https://siteweb-vumagazine-production.up.railway.app/blog/${a.slug}" target="_blank" class="btn g sm">↗</a></div></td>
+      <td><div class="row-acts"><button class="btn g sm" onclick="editArt(${a.id},'${a.status}')">Éditer</button><button class="btn g sm" onclick="dupArt(${a.id})" title="Dupliquer">⧉</button><a href="https://siteweb-vumagazine-production.up.railway.app/blog/${a.slug}" target="_blank" class="btn g sm">↗</a></div></td>
     </tr>`).join('') : '<tr><td colspan="6"><div class="empty">Aucun article</div></td></tr>';
 }
 
@@ -1184,7 +1192,17 @@ async function initEd(id=null) {
   renderFAQ(); setMode('v'); updateSEO(); updateWC();
   document.getElementById('art-status').onchange = function(){ onStatusChange(this.value); };
 }
-async function editArt(id) { go('new-article'); await initEd(id); }
+async function editArt(id, status) {
+  if (status === 'published' || status === 'scheduled') {
+    go('optimize');
+    await initOpt();
+    const sel = document.getElementById('opt-sel');
+    if (sel) { sel.value = id; await loadOptArt(); }
+  } else {
+    go('new-article');
+    await initEd(id);
+  }
+}
 async function onTitle(v) {
   updateSEO();
   if (!S.currentId && v.length > 3) {
@@ -1447,7 +1465,7 @@ function renderKanban(){
         ${c.cat?`<div class="kcard-cat" style="color:${c.color||'#888'}">${c.cat}</div>`:''}
         <div class="kcard-ttl">${esc(c.title)}</div>
         <div class="kcard-meta"><div class="kcard-av">${(c.author||'?').charAt(0).toUpperCase()}</div>${c.date?`<div class="kcard-date">${new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>`:''}</div>
-        <div class="kcard-acts" ondragstart="event.stopPropagation()"><button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})" title="Modifier">✏</button><button class="kcbtn" onclick="event.stopPropagation();editArt(${c.id})" title="Éditer">→</button></div>
+        <div class="kcard-acts" ondragstart="event.stopPropagation()"><button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})" title="Modifier">✏</button><button class="kcbtn" onclick="event.stopPropagation();editArt(${c.id},'${c.col==='published'?'published':c.col==='scheduled'?'scheduled':'draft'}')" title="Éditer">→</button></div>
       </div>`).join('');
   });
 }
@@ -1519,9 +1537,15 @@ async function initOpt(){
 async function loadOptArt(){
   const id=document.getElementById('opt-sel').value; if(!id){S.optArt=null;return;}
   S.optArt=await api('GET',`/api/articles/${id}`);
-  txt('opt-ttl',S.optArt.title); txt('opt-slug',`vu-magazine.com/blog/${S.optArt.slug}`);
-  document.getElementById('opt-info').style.display='';
-  document.getElementById('opt-seo-pnl').style.display='';
+  txt('opt-ttl', S.optArt.title);
+  txt('opt-slug', `vu-magazine.com/blog/${S.optArt.slug}`);
+  document.getElementById('opt-info').style.display = '';
+  document.getElementById('opt-seo-pnl').style.display = '';
+  const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
+  setVal('opt-edit-title', S.optArt.title);
+  setVal('opt-edit-exc', S.optArt.excerpt);
+  setVal('opt-edit-content', S.optArt.content ? S.optArt.content.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim() : '');
+  setVal('opt-edit-meta', S.optArt.meta_description);
   const arr=[[!!S.optArt.title,'Titre'],[!!S.optArt.slug,'Slug'],[(S.optArt.excerpt||'').length>=80,'Extrait 80+'],[(S.optArt.meta_description||'').length>=120,'Meta desc'],[(S.optArt.content||'').split(/\s+/).length>=800,'800+ mots'],[!!S.optArt.cover_image_url,'Image principale']];
   document.getElementById('opt-seo-chks').innerHTML=arr.map(([ok,lbl])=>`<div class="seo-chk ${ok?'ok':'bad'}"><span>${ok?'✅':'○'}</span> ${lbl}</div>`).join('');
 }
@@ -1531,6 +1555,24 @@ async function runOpt(type){
   if(wrap)wrap.style.display=''; if(body)body.innerHTML='<div class="loading"><div class="spin"></div> Analyse en cours…</div>';
   if(ttl)ttl.textContent=`${type.toUpperCase()} — Analyse`;
   try { const r=await api('POST','/api/agent',{type,title:S.optArt.title,keyword:S.optArt.title,excerpt:S.optArt.excerpt,content:S.optArt.content}); if(body)body.innerHTML=mdHtml(r.result||''); wrap?.scrollIntoView({behavior:'smooth'}); toast('Agent terminé ✅'); } catch(e){if(body)body.innerHTML=`<div style="color:var(--accent)">❌ ${e.message}</div>`;}
+}
+
+async function saveOptArt(){
+  if(!S.optArt) return toast('Aucun article chargé','e');
+  const title = document.getElementById('opt-edit-title')?.value?.trim();
+  const excerpt = document.getElementById('opt-edit-exc')?.value?.trim();
+  const content = document.getElementById('opt-edit-content')?.value?.trim();
+  const meta_description = document.getElementById('opt-edit-meta')?.value?.trim();
+  if(!title) return toast('Le titre est obligatoire','e');
+  try {
+    await api('PUT', `/api/articles/${S.optArt.id}`, {
+      ...S.optArt, title, excerpt, content, meta_description
+    });
+    S.optArt.title = title; S.optArt.excerpt = excerpt;
+    S.optArt.content = content; S.optArt.meta_description = meta_description;
+    txt('opt-ttl', title);
+    toast('✅ Article sauvegardé !');
+  } catch(e){ toast('Erreur : '+e.message,'e'); }
 }
 
 // ─ LINKEDIN ──────────────────────────────────────────────────────
