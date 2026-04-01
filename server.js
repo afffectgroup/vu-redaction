@@ -589,6 +589,30 @@ app.post('/api/linkedin-post', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
+//  API LINKEDIN — Génération de post IA
+// ══════════════════════════════════════════════════════════════
+app.post('/api/linkedin-generate', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt requis' });
+
+  const system = `Tu es un expert en rédaction de posts LinkedIn pour VU Magazine, le média Social Media de référence en France. Stéphanie Jouin est l'auteure principale (12+ ans d'expérience terrain).
+
+RÈGLES ABSOLUES :
+- Rédige UNIQUEMENT le texte du post LinkedIn, rien d'autre
+- Pas de markdown, pas de titres, pas d'analyse, pas de commentaire
+- Pas de guillemets autour du post
+- Commence directement par le contenu du post
+- Longueur : 800-1800 caractères selon le format demandé
+- Langue : français, ancrage France, chiffres vérifiables
+- Émojis : utilisés avec parcimonie, jamais en début de ligne sauf hook`;
+
+  try {
+    const result = await callClaude(system, prompt);
+    res.json({ result: result.trim() });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
 //  AGENT PROMPTS — VU Rédaction
 //  VU Magazine · vu-magazine.com
 // ══════════════════════════════════════════════════════════════
