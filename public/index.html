@@ -11,7 +11,7 @@
   --bg:#F7F4F0; --bg2:#FDFCFB; --panel:#FFFFFF; --surface:#F2EFE9; --card:#FDFCFB;
   --border:#E0DAD3; --border2:#CFC8BF;
   --ink:#1C1714; --ink2:#6B6460; --ink3:#9B948C; --ink4:#C4BDB5;
-  --accent:#C8303C; --accent2:#E63946;
+  --accent:#0A0A0A; --accent2:#111111;
   --green:#2D9E4F; --yellow:#B8860B; --blue:#1D6FD8; --purple:#7C4DCC; --orange:#D4622A;
   --serif:'Instrument Serif',serif; --sans:'Geist',sans-serif; --mono:'Geist Mono',monospace;
   --r:6px; --r2:10px;
@@ -31,12 +31,12 @@ a{color:inherit;text-decoration:none;} button,input,textarea,select{font-family:
 
 /* SIDEBAR */
 .sb-logo{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.sb-mark{width:30px;height:28px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;letter-spacing:.02em;color:#fff;flex-shrink:0;font-family:var(--sans);}
+.sb-mark{width:34px;height:32px;border-radius:6px;background:#0A0A0A;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:-.02em;color:#fff;flex-shrink:0;font-family:var(--serif);}
 .sb-name{font-family:var(--serif);font-size:18px;line-height:1;} .sb-name span{color:var(--accent);}
 .sb-ver{font-size:9px;color:var(--ink3);letter-spacing:.08em;margin-top:1px;}
 .nav-grp{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);padding:12px 12px 3px;}
 .nav-it{display:flex;align-items:center;gap:9px;padding:7px 10px;margin:1px 6px;border-radius:var(--r);font-size:13px;color:var(--ink2);cursor:pointer;transition:all .12s;position:relative;}
-.nav-it:hover{background:rgba(0,0,0,.04);color:var(--ink);} .nav-it.on{background:rgba(200,48,60,.08);color:var(--accent);font-weight:600;}
+.nav-it:hover{background:rgba(0,0,0,.04);color:var(--ink);} .nav-it.on{background:rgba(0,0,0,.07);color:var(--accent);font-weight:600;}
 .nav-it.on::before{content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--accent);border-radius:0 2px 2px 0;}
 .nav-ico{width:14px;text-align:center;opacity:.6;flex-shrink:0;} .nav-it.on .nav-ico,.nav-it:hover .nav-ico{opacity:1;}
 .nav-badge{margin-left:auto;font-size:9px;font-weight:700;padding:1px 7px;border-radius:100px;background:var(--accent);color:#fff;letter-spacing:.03em;}
@@ -54,12 +54,12 @@ a{color:inherit;text-decoration:none;} button,input,textarea,select{font-family:
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;transition:all .12s;cursor:pointer;border:none;}
-.btn.p{background:var(--accent);color:#fff;} .btn.p:hover{background:#c0303c;}
+.btn.p{background:var(--accent);color:#fff;} .btn.p:hover{background:#333333;}
 .btn.g{background:transparent;color:var(--ink2);border:1px solid var(--border2);} .btn.g:hover{background:var(--surface);color:var(--ink);}
 .btn.b{background:rgba(56,139,253,.12);color:var(--blue);border:1px solid rgba(56,139,253,.25);} .btn.b:hover{background:var(--blue);color:#fff;}
 .btn.green{background:rgba(63,185,80,.1);color:var(--green);border:1px solid rgba(63,185,80,.25);} .btn.green:hover{background:var(--green);color:#fff;}
 .btn.pur{background:rgba(188,140,255,.1);color:var(--purple);border:1px solid rgba(188,140,255,.25);} .btn.pur:hover{background:var(--purple);color:#fff;}
-.btn.d{background:rgba(200,48,60,.07);color:var(--accent);border:1px solid rgba(230,57,70,.2);} .btn.d:hover{background:var(--accent);color:#fff;}
+.btn.d{background:rgba(0,0,0,.06);color:var(--accent);border:1px solid rgba(0,0,0,.15);} .btn.d:hover{background:var(--accent);color:#fff;}
 .btn.sm{padding:5px 10px;font-size:12px;}
 
 /* FORMS */
@@ -157,7 +157,7 @@ td{padding:10px 14px;font-size:13px;}
 .kcbtn:hover{color:var(--ink);}
 .kadd{margin:6px;padding:8px;border-radius:var(--r);border:1px dashed var(--border);color:var(--ink3);font-size:12px;text-align:center;cursor:pointer;transition:all .12s;}
 .kadd:hover{border-color:var(--border2);color:var(--ink);background:var(--surface);}
-.kcol.dov{border-color:var(--accent);background:rgba(200,48,60,.025);}
+.kcol.dov{border-color:var(--accent);background:rgba(0,0,0,.025);}
 
 /* CALENDAR */
 .cal-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
@@ -196,8 +196,8 @@ td{padding:10px 14px;font-size:13px;}
 
 /* AI PANEL */
 .ai-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
-.ai-hd{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:rgba(200,48,60,.03);}
-.ai-badge{background:linear-gradient(135deg,var(--accent),#FF8C94);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:100px;}
+.ai-hd{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.03);}
+.ai-badge{background:linear-gradient(135deg,#111111,#444444);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:100px;}
 .ai-gbtns{display:flex;flex-direction:column;gap:5px;padding:10px;}
 .ai-gbtn{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);color:var(--ink2);font-size:12px;font-weight:500;transition:all .12s;cursor:pointer;}
 .ai-gbtn:hover{background:var(--card);border-color:var(--border2);color:var(--ink);}
@@ -214,7 +214,7 @@ td{padding:10px 14px;font-size:13px;}
 .seo-fill{height:100%;border-radius:3px;transition:width .4s;}
 
 /* URL IMPORT */
-.url-box{background:linear-gradient(135deg,rgba(200,48,60,.03),transparent);border:1px solid rgba(230,57,70,.2);border-radius:var(--r2);padding:16px;margin-bottom:16px;}
+.url-box{background:linear-gradient(135deg,rgba(0,0,0,.03),transparent);border:1px solid rgba(0,0,0,.1);border-radius:var(--r2);padding:16px;margin-bottom:16px;}
 .url-row{display:flex;gap:8px;} .url-inp{flex:1;}
 
 /* VEILLE */
@@ -240,7 +240,7 @@ td{padding:10px 14px;font-size:13px;}
 .m-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;display:none;align-items:center;justify-content:center;}
 .m-thumb.sel .m-check{display:flex;}
 .m-upload{aspect-ratio:16/10;border-radius:var(--r);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--ink3);font-size:12px;transition:all .12s;}
-.m-upload:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,48,60,.03);}
+.m-upload:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,0,0,.03);}
 
 /* LINKEDIN */
 .li-prev{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px;font-size:13px;color:var(--ink);line-height:1.7;min-height:100px;white-space:pre-wrap;}
@@ -251,13 +251,13 @@ td{padding:10px 14px;font-size:13px;}
 .metric-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
 .metric-row:last-child{border-bottom:none;}
 .m-chg{font-size:11px;padding:1px 6px;border-radius:3px;}
-.m-up{background:rgba(63,185,80,.12);color:var(--green);} .m-dn{background:rgba(230,57,70,.12);color:var(--accent);}
+.m-up{background:rgba(63,185,80,.12);color:var(--green);} .m-dn{background:rgba(0,0,0,.08);color:var(--ink2);}
 
 /* SETTINGS */
 .set-layout{display:grid;grid-template-columns:196px 1fr;gap:16px;align-items:start;}
 .set-nav{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:6px;}
 .set-ni{padding:7px 12px;border-radius:var(--r);font-size:13px;color:var(--ink2);cursor:pointer;transition:all .12s;}
-.set-ni:hover{background:var(--surface);color:var(--ink);} .set-ni.on{background:rgba(200,48,60,.07);color:var(--ink);}
+.set-ni:hover{background:var(--surface);color:var(--ink);} .set-ni.on{background:rgba(0,0,0,.07);color:var(--ink);}
 .set-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:20px;}
 .set-section{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 
@@ -280,7 +280,7 @@ td{padding:10px 14px;font-size:13px;}
 
 .ed-title-input{font-family:var(--serif);font-size:20px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding-left:0;padding-bottom:10px;width:100%;}
 .slug-pill{font-size:11px;color:var(--ink3);background:var(--bg2);padding:3px 8px;border-radius:4px;font-family:var(--mono);}
-.dash-welcome{background:linear-gradient(135deg,rgba(200,48,60,.06) 0%,rgba(247,244,240,0) 70%);border:1px solid rgba(200,48,60,.12);border:1px solid rgba(230,57,70,.15);border-radius:var(--r2);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.dash-welcome{background:linear-gradient(135deg,rgba(0,0,0,.04) 0%,rgba(247,244,240,0) 70%);border:1px solid rgba(0,0,0,.1);border-radius:var(--r2);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
 
 /* Extracted inline styles */
 
@@ -586,7 +586,7 @@ td{padding:10px 14px;font-size:13px;}
           <div class="ai-panel">
             <div class="ai-hd"><div class="ai-badge">IA</div><div style="font-size:13px;font-weight:600">Assistant IA</div></div>
             <div class="ai-gbtns">
-              <button class="ai-gbtn" onclick="aiGen('article')"><div class="ai-ico" style="background:rgba(230,57,70,.15)">📄</div> Article complet</button>
+              <button class="ai-gbtn" onclick="aiGen('article')"><div class="ai-ico" style="background:rgba(0,0,0,.08)">📄</div> Article complet</button>
               <button class="ai-gbtn" onclick="aiGen('paragraph')"><div class="ai-ico" style="background:rgba(56,139,253,.15)">¶</div> Paragraphe</button>
               <button class="ai-gbtn" onclick="aiGen('title')"><div class="ai-ico" style="background:rgba(63,185,80,.15)">T</div> Titres SEO</button>
               <button class="ai-gbtn" onclick="aiGen('intro')"><div class="ai-ico" style="background:rgba(188,140,255,.15)">↗</div> Réécrire l'intro</button>
@@ -883,123 +883,70 @@ Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button cla
 </div><!-- /main -->
 
 <!-- MODALS -->
-<div class="modal-overlay" id="gloss-modal">
+<div class="modal-ov" id="gloss-modal">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="gloss-modal-title">Nouveau terme</div>
-      <button class="modal-close" onclick="closeModal('gloss-modal')">✕</button>
+    <div class="modal-hd">
+      <div class="modal-ttl" id="gloss-modal-title">Nouveau terme</div>
+      <button class="modal-x" onclick="closeMod('gloss-modal')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="gloss-id">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Terme *</label>
-          <input class="form-input" type="text" id="gloss-name" placeholder="ex: Reach organique">
+      <div class="vgap">
+        <div class="g2">
+          <div class="field"><div class="lbl">Terme *</div><input class="inp" type="text" id="gloss-name" placeholder="ex: Reach organique"></div>
+          <div class="field"><div class="lbl">Statut</div><select class="sel" id="gloss-status"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Statut</label>
-          <select class="form-select" id="gloss-status">
-            <option value="published">Publié</option>
-            <option value="draft">Brouillon</option>
-          </select>
+        <div class="field"><div class="lbl">Définition *</div><textarea class="ta" id="gloss-def" placeholder="Définition claire et concise…" style="min-height:100px"></textarea></div>
+        <div class="field"><div class="lbl">Exemple concret</div><textarea class="ta" id="gloss-example" placeholder="Ex: Un post Instagram avec 10 000 followers et 500 impressions organiques…" style="min-height:70px"></textarea></div>
+        <div class="g2">
+          <div class="field"><div class="lbl">Plateformes (séparées par virgule)</div><input class="inp" type="text" id="gloss-platforms" placeholder="Instagram, TikTok, LinkedIn"></div>
+          <div class="field"><div class="lbl">Termes liés</div><input class="inp" type="text" id="gloss-related" placeholder="Impressions, Portée, Engagement"></div>
         </div>
-        <div class="form-group full">
-          <label class="form-label">Définition *</label>
-          <textarea class="form-textarea" id="gloss-def" placeholder="Définition claire et concise…" style="min-height:100px"></textarea>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Exemple concret</label>
-          <textarea class="form-textarea" id="gloss-example" placeholder="Ex: Un post Instagram avec 10 000 followers et 500 impressions organiques…" style="min-height:80px"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Plateformes (séparées par virgule)</label>
-          <input class="form-input" type="text" id="gloss-platforms" placeholder="Instagram, TikTok, LinkedIn">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Termes liés</label>
-          <input class="form-input" type="text" id="gloss-related" placeholder="Impressions, Portée, Engagement">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Article lié (slug)</label>
-          <input class="form-input" type="text" id="gloss-article" placeholder="ex: algorithme-instagram-2026">
-        </div>
+        <div class="field"><div class="lbl">Article lié (slug)</div><input class="inp" type="text" id="gloss-article" placeholder="ex: algorithme-instagram-2026"></div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('gloss-modal')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveGlossary()">Sauvegarder</button>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('gloss-modal')">Annuler</button>
+      <button class="btn p" onclick="saveGlossary()">Sauvegarder</button>
     </div>
   </div>
 </div>
 
 <!-- ══ MODAL PARTENAIRE ═════════════════════════════════════════ -->
 
-<div class="modal-overlay" id="partner-modal">
+<div class="modal-ov" id="partner-modal">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="partner-modal-title">Nouveau partenaire</div>
-      <button class="modal-close" onclick="closeModal('partner-modal')">✕</button>
+    <div class="modal-hd">
+      <div class="modal-ttl" id="partner-modal-title">Nouveau partenaire</div>
+      <button class="modal-x" onclick="closeMod('partner-modal')">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="partner-id">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Nom *</label>
-          <input class="form-input" type="text" id="partner-name" placeholder="ex: Canva">
+      <div class="vgap">
+        <div class="g2">
+          <div class="field"><div class="lbl">Nom *</div><input class="inp" type="text" id="partner-name" placeholder="ex: Canva"></div>
+          <div class="field"><div class="lbl">Catégorie</div><input class="inp" type="text" id="partner-cat" placeholder="creation, planification…"></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Catégorie</label>
-          <input class="form-input" type="text" id="partner-cat" placeholder="creation, planification, prospection…">
+        <div class="g2">
+          <div class="field"><div class="lbl">Badge</div><select class="sel" id="partner-badge"><option value="Affilié">Affilié</option><option value="Partenaire">Partenaire</option><option value="Recommandé">Recommandé</option><option value="Sponsorisé">Sponsorisé</option></select></div>
+          <div class="field"><div class="lbl">Note (/5)</div><input class="inp" type="number" id="partner-rating" min="0" max="5" step="0.1" placeholder="4.5"></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Badge</label>
-          <select class="form-select" id="partner-badge">
-            <option value="Affilié">Affilié</option>
-            <option value="Partenaire">Partenaire</option>
-            <option value="Recommandé">Recommandé</option>
-            <option value="Sponsorisé">Sponsorisé</option>
-          </select>
+        <div class="field"><div class="lbl">Description courte</div><textarea class="ta" id="partner-desc" placeholder="1-2 phrases de présentation…" style="min-height:70px"></textarea></div>
+        <div class="g2">
+          <div class="field"><div class="lbl">URL affilié</div><input class="inp" type="url" id="partner-affiliate" placeholder="https://…"></div>
+          <div class="field"><div class="lbl">Site web</div><input class="inp" type="url" id="partner-website" placeholder="https://…"></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Note (/5)</label>
-          <input class="form-input" type="number" id="partner-rating" min="0" max="5" step="0.1" placeholder="4.5">
+        <div class="g2">
+          <div class="field"><div class="lbl">Logo URL</div><input class="inp" type="url" id="partner-logo" placeholder="https://…"></div>
+          <div class="field"><div class="lbl">Statut</div><select class="sel" id="partner-status"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
         </div>
-        <div class="form-group full">
-          <label class="form-label">Description courte</label>
-          <textarea class="form-textarea" id="partner-desc" placeholder="1-2 phrases de présentation…" style="min-height:70px"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">URL affilié</label>
-          <input class="form-input" type="url" id="partner-affiliate" placeholder="https://…">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Site web</label>
-          <input class="form-input" type="url" id="partner-website" placeholder="https://…">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Logo URL</label>
-          <input class="form-input" type="url" id="partner-logo" placeholder="https://…">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Statut</label>
-          <select class="form-select" id="partner-status">
-            <option value="published">Publié</option>
-            <option value="draft">Brouillon</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Points forts (séparés par |)</label>
-          <input class="form-input" type="text" id="partner-pros" placeholder="Interface intuitive|Templates pro|Collaboratif">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Inconvénients (séparés par |)</label>
-          <input class="form-input" type="text" id="partner-cons" placeholder="Fonctions avancées payantes|Export limité">
-        </div>
+        <div class="field"><div class="lbl">Points forts (séparés par |)</div><input class="inp" type="text" id="partner-pros" placeholder="Interface intuitive|Templates pro|Collaboratif"></div>
+        <div class="field"><div class="lbl">Inconvénients (séparés par |)</div><input class="inp" type="text" id="partner-cons" placeholder="Fonctions avancées payantes|Export limité"></div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('partner-modal')">Annuler</button>
-      <button class="btn btn-primary" onclick="savePartner()">Sauvegarder</button>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('partner-modal')">Annuler</button>
+      <button class="btn p" onclick="savePartner()">Sauvegarder</button>
     </div>
   </div>
 </div>
@@ -1336,7 +1283,7 @@ function setCoverPrev(url){
 }
 
 // Schedule
-function openSchedule(){document.getElementById('modal-sched').classList.add('open');}
+function openSchedule(){closeAllModals();document.getElementById('modal-sched').classList.add('open');}
 function confirmSched(){
   const dt=document.getElementById('sched-modal-dt').value; if(!dt) return toast('Choisissez une date','e');
   document.getElementById('art-status').value='scheduled'; document.getElementById('art-sched-dt').value=dt;
@@ -1510,7 +1457,7 @@ function openKMod(c){
   document.getElementById('kmod-title').value=c.title||'';
   document.getElementById('kmod-col').value=c.col||'draft';
   if(c.date)document.getElementById('kmod-date').value=c.date.substring(0,10);
-  document.getElementById('modal-kcard').classList.add('open');
+  closeAllModals();document.getElementById('modal-kcard').classList.add('open');
 }
 async function saveKCard(){
   const id=document.getElementById('kmod-id').value; const title=document.getElementById('kmod-title').value.trim();
@@ -1666,7 +1613,7 @@ function selMedia(url,ctx='page'){
     document.getElementById('m-url').value=url;
   }
 }
-function openMediaPicker(ctx='cover'){S.mCtx=ctx;document.getElementById('modal-media').classList.add('open');switchMSrc('unsplash','modal');}
+function openMediaPicker(ctx='cover'){S.mCtx=ctx;closeAllModals();document.getElementById('modal-media').classList.add('open');switchMSrc('unsplash','modal');}
 function confirmMedia(){
   if(!S.mSel)return toast('Sélectionnez une image','i');
   if(S.mCtx==='cover'||S.mCtx==='editor'){ setCoverPrev(S.mSel); document.getElementById('art-cover').value=S.mSel; }
@@ -1734,6 +1681,7 @@ function switchSet(key,el){
 
 // ─ MODAL / UTILS ─────────────────────────────────────────────────
 function closeMod(id){document.getElementById(id)?.classList.remove('open');}
+function closeAllModals(){document.querySelectorAll('.modal-ov,.modal-overlay').forEach(m=>m.classList.remove('open'));}
 document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.addEventListener('click',e=>{ if(floatOpen&&!document.getElementById('ai-float').contains(e.target)&&!e.target.closest('[onclick*="showAiFloat"]'))closeFloat(); });
 function cpRes(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText||'').then(()=>toast('📋 Copié !'),()=>toast('Erreur copie','e'));}
@@ -1743,7 +1691,7 @@ function cpRes(id){const el=document.getElementById(id);if(!el)return;navigator.
 // ── TICKER DATA DEFAULT ──────────────────────────────────────────
 S.ticker = [
   {cat:'TikTok',color:'#aaa',title:'Trend Bridgerton explose le feed'},
-  {cat:'Benchmarks 2026',color:'#E63946',title:'-42% portée organique'},
+  {cat:'Benchmarks 2026',color:'#0A0A0A',title:'-42% portée organique'},
   {cat:'Facebook',color:'#1877F2',title:'Meta recrute pour son IA sociale'},
   {cat:'LinkedIn',color:'#0A66C2',title:'pourquoi vos posts ne fonctionnent plus'},
   {cat:'YouTube',color:'#FF0000',title:'nouvelles règles de monétisation 2026'},
@@ -1784,7 +1732,7 @@ function renderGlossaryList(terms) {
             <td style="padding:12px 16px"><span class="badge badge-${t.status}">${t.status==='published'?'✅':'📝'}</span></td>
             <td style="padding:12px 16px">
               <div style="display:flex;gap:6px">
-                <button class="btn btn-ghost btn-sm" onclick="editGlossary(${t.id})">Éditer</button>
+                <button class="btn g sm" onclick="editGlossary(${t.id})">Éditer</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteGlossary(${t.id},'${escAttr(t.name)}')">✕</button>
               </div>
             </td>
@@ -1810,7 +1758,7 @@ function openGlossModal(term = null) {
   document.getElementById('gloss-related').value = term?.related_terms?.join(', ') || '';
   document.getElementById('gloss-article').value = term?.article_slug || '';
   document.getElementById('gloss-status').value = term?.status || 'published';
-  document.getElementById('gloss-modal').classList.add('open');
+  closeAllModals();document.getElementById('gloss-modal').classList.add('open');
 }
 
 function editGlossary(id) {
@@ -1861,12 +1809,12 @@ async function loadPartners() {
         <small>${escHtml(p.description||'').substring(0,60)}…</small>
       </td>
       <td style="color:var(--ink3);font-size:12px">${escHtml(p.category||'—')}</td>
-      <td><span style="font-size:10px;background:rgba(230,57,70,.12);color:var(--accent);padding:2px 8px;border-radius:4px">${escHtml(p.badge||'Affilié')}</span></td>
+      <td><span style="font-size:10px;background:rgba(0,0,0,.07);color:var(--ink2);padding:2px 8px;border-radius:4px">${escHtml(p.badge||'Affilié')}</span></td>
       <td style="color:var(--yellow)">★ ${p.rating||'—'}/5</td>
       <td><span class="badge badge-${p.status}">${p.status==='published'?'✅ Publié':'📝 Brouillon'}</span></td>
       <td>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="editPartner(${p.id})">Éditer</button>
+          <button class="btn g sm" onclick="editPartner(${p.id})">Éditer</button>
           <button class="btn btn-danger btn-sm" onclick="deletePartner(${p.id},'${escAttr(p.name)}')">✕</button>
         </div>
       </td>
@@ -1888,7 +1836,7 @@ function openPartnerModal(partner = null) {
   document.getElementById('partner-status').value = partner?.status || 'published';
   document.getElementById('partner-pros').value = partner?.pros?.join('|') || '';
   document.getElementById('partner-cons').value = partner?.cons?.join('|') || '';
-  document.getElementById('partner-modal').classList.add('open');
+  closeAllModals();document.getElementById('partner-modal').classList.add('open');
 }
 
 function editPartner(id) {
