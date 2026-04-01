@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Favicon / PWA ────────────────────────────────────────────
 app.get('/favicon.ico', (req, res) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0A0A0A"/><text x="7" y="22" text-anchor="start" fill="#E63946" font-family="serif" font-size="13" font-weight="bold">VR</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="4" fill="#0A0A0A"/><text x="16" y="22" text-anchor="middle" fill="#FFFFFF" font-family="Georgia,serif" font-size="14" font-weight="700" letter-spacing="-0.5">VU</text></svg>`;
   res.header('Content-Type', 'image/svg+xml');
   res.send(svg);
 });
