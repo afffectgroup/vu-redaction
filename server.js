@@ -179,6 +179,26 @@ app.put('/api/articles/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// PATCH status uniquement (Kanban drag & drop)
+app.patch('/api/articles/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status) return res.status(400).json({ error: 'status requis' });
+    const { rows: [article] } = await pool.query(`
+      UPDATE articles SET
+        status = $1::text,
+        published_at = CASE
+          WHEN $1::text = 'published' AND published_at IS NULL THEN NOW()
+          ELSE published_at
+        END,
+        updated_at = NOW()
+      WHERE id = $2 RETURNING id, status, published_at
+    `, [status, req.params.id]);
+    if (!article) return res.status(404).json({ error: 'Article non trouvé' });
+    res.json(article);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.delete('/api/articles/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM articles WHERE id = $1', [req.params.id]);
