@@ -480,6 +480,95 @@ const DEMO_LINKEDIN = [
 // ══════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════
+//  API PHOTOS — Unsplash + Pexels
+// ══════════════════════════════════════════════════════════════
+app.get('/api/photos', async (req, res) => {
+  const { q = 'social media', src = 'unsplash', per_page = 12 } = req.query;
+
+  if (src === 'pexels') {
+    const KEY = process.env.PEXELS_API_KEY;
+    if (!KEY) return res.json({ photos: [], demo: true });
+    try {
+      const { body } = await httpGet(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=${per_page}`,
+        { Authorization: KEY }
+      );
+      const photos = (body.photos || []).map(p => ({
+        id: p.id, url: p.src.large, thumb: p.src.medium,
+        credit: p.photographer, credit_url: p.photographer_url, source: 'pexels'
+      }));
+      res.json({ photos });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+
+  } else {
+    const KEY = process.env.UNSPLASH_ACCESS_KEY;
+    if (!KEY) return res.json({ photos: [], demo: true });
+    try {
+      const { body } = await httpGet(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=${per_page}`,
+        { Authorization: `Client-ID ${KEY}` }
+      );
+      const photos = (body.results || []).map(p => ({
+        id: p.id, url: p.urls.regular, thumb: p.urls.small,
+        credit: p.user.name, credit_url: p.user.links.html, source: 'unsplash'
+      }));
+      res.json({ photos });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  API LINKEDIN — Publier sur la page organisation
+// ══════════════════════════════════════════════════════════════
+app.post('/api/linkedin-post', async (req, res) => {
+  const TOKEN = process.env.LINKEDIN_ORG_TOKEN;
+  const ORG_URN = process.env.LINKEDIN_ORG_URN || 'urn:li:organization:37832559';
+  if (!TOKEN) return res.status(400).json({ error: 'LINKEDIN_ORG_TOKEN manquant dans Railway' });
+
+  const { text, url } = req.body;
+  if (!text) return res.status(400).json({ error: 'Texte du post requis' });
+
+  const payload = JSON.stringify({
+    author: ORG_URN,
+    lifecycleState: 'PUBLISHED',
+    specificContent: {
+      'com.linkedin.ugc.ShareContent': {
+        shareCommentary: { text },
+        shareMediaCategory: url ? 'ARTICLE' : 'NONE',
+        ...(url ? { media: [{ status: 'READY', originalUrl: url }] } : {})
+      }
+    },
+    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+  });
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const r = require('https').request({
+        hostname: 'api.linkedin.com', path: '/v2/ugcPosts', method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TOKEN}`,
+          'X-Restli-Protocol-Version': '2.0.0',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, (resp) => {
+        let d = '';
+        resp.on('data', c => d += c);
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, body: JSON.parse(d) }); }
+          catch(e) { resolve({ status: resp.statusCode, body: d }); }
+        });
+      });
+      r.on('error', reject);
+      r.setTimeout(15000, () => { r.destroy(); reject(new Error('Timeout LinkedIn API')); });
+      r.write(payload); r.end();
+    });
+    if (result.status >= 400) return res.status(result.status).json({ error: 'LinkedIn API error', detail: result.body });
+    res.json({ ok: true, id: result.body?.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
 //  AGENT PROMPTS — VU Rédaction
 //  VU Magazine · vu-magazine.com
 // ══════════════════════════════════════════════════════════════
