@@ -1022,10 +1022,22 @@ const PAGE_NAMES = {dashboard:'Dashboard', glossaire:'Glossaire Social Media', p
 async function api(m, u, b) {
   try {
     const r = await fetch(u, {method:m, headers:{'Content-Type':'application/json'}, body:b?JSON.stringify(b):undefined});
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const txt = await r.text();
+      throw new Error(`Serveur indisponible (${r.status}) — vérifiez Railway`);
+    }
     const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Erreur');
+    if (!r.ok) throw new Error(d.error || `Erreur ${r.status}`);
     return d;
-  } catch(e) { toast(e.message, 'e'); throw e; }
+  } catch(e) {
+    if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      toast('Impossible de joindre le serveur', 'e');
+    } else {
+      toast(e.message, 'e');
+    }
+    throw e;
+  }
 }
 
 // ─ TOAST ─────────────────────────────────────────────────────────
@@ -1626,7 +1638,7 @@ async function genLi(){
   const fmts={story:'Storytelling : hook fort (chiffre ou anecdote), développement, leçon actionnable',insight:'Insight expert : donnée précise, analyse, implication',thread:'5 points numérotés, stat-choc en intro',question:'Question qui fait réfléchir, point de vue, invitation au débat',benchmark:'Chiffre précis d\'abord, contexte Social Media France'};
   const ctas={article:'CTA : Lire l\'article complet sur VU Magazine →',newsletter:'CTA : S\'abonner à la newsletter VU Magazine',comment:'CTA : Partager votre expérience en commentaire',none:''};
   const prompt=`Génère un post LinkedIn pour ${tones[tone]}.\nFormat : ${fmts[fmt]}.\n${ctas[cta]?'CTA : '+ctas[cta]:''}\nHashtags : ${tags}\nLongueur : 1200-1800 car. max. Pas de markdown, pas de titres. Texte du post uniquement.\n\nSource : ${src}`;
-  try { const r=await api('POST','/api/agent',{type:'correcteur',title:'Post LinkedIn',content:prompt}); const text=(r.result||'').replace(/<[^>]+>/g,'').trim(); if(prev)prev.textContent=text; updateLiChars(); toast('✅ Post LinkedIn généré !'); } catch(e){if(prev)prev.textContent='❌ '+e.message;}
+  try { const r=await api('POST','/api/linkedin-generate',{prompt}); const text=(r.result||'').replace(/<[^>]+>/g,'').trim(); if(prev)prev.textContent=text; updateLiChars(); toast('✅ Post LinkedIn généré !'); } catch(e){if(prev)prev.textContent='❌ '+e.message;}
 }
 function updateLiChars(){const t=document.getElementById('li-prev')?.textContent||'';const el=document.getElementById('li-chars');if(el){el.textContent=`${t.length} / 3000 car.`;el.style.color=t.length>3000?'var(--accent)':'var(--ink3)';}}
 document.getElementById('li-prev')?.addEventListener('input',updateLiChars);
