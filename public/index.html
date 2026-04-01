@@ -1447,7 +1447,7 @@ function renderKanban(){
         ${c.cat?`<div class="kcard-cat" style="color:${c.color||'#888'}">${c.cat}</div>`:''}
         <div class="kcard-ttl">${esc(c.title)}</div>
         <div class="kcard-meta"><div class="kcard-av">${(c.author||'?').charAt(0).toUpperCase()}</div>${c.date?`<div class="kcard-date">${new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>`:''}</div>
-        <div class="kcard-acts"><button class="kcbtn" onclick="editKCard(${c.id})" title="Modifier">✏</button><button class="kcbtn" onclick="editArt(${c.id})" title="Éditer">→</button></div>
+        <div class="kcard-acts" ondragstart="event.stopPropagation()"><button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})" title="Modifier">✏</button><button class="kcbtn" onclick="event.stopPropagation();editArt(${c.id})" title="Éditer">→</button></div>
       </div>`).join('');
   });
 }
@@ -1459,10 +1459,10 @@ async function ddrop(e,col){
   e.preventDefault();e.currentTarget?.classList.remove('dov');
   if(!S.dragCard)return; S.dragCard.col=col; renderKanban();
   const sm={ideas:'draft',draft:'draft',review:'draft',scheduled:'scheduled',published:'published'};
-  try{await api('PUT',`/api/articles/${S.dragCard.id}`,{status:sm[col]||'draft'});}catch{}
+  try{await api('PATCH',`/api/articles/${S.dragCard.id}/status`,{status:sm[col]||'draft'});}catch(e){toast('Erreur : '+e.message,'e');}
 }
 function addCard(col){openKMod({id:null,col,title:'',cat:'',date:''});}
-function editKCard(id){const c=S.kanban.find(c=>c.id===id);if(c)openKMod(c);}
+function editKCard(id){const c=S.kanban.find(c=>String(c.id)===String(id));if(c)openKMod(c);else toast('Carte introuvable','e');}
 function openKMod(c){
   if(!S.cats.length)loadMeta();
   txt('kmod-ttl',c.id?'Modifier la carte':'Nouvelle carte');
@@ -1477,7 +1477,7 @@ async function saveKCard(){
   const col=document.getElementById('kmod-col').value; const catId=document.getElementById('kmod-cat').value;
   if(!title) return toast('Titre obligatoire','e');
   const sm={ideas:'draft',draft:'draft',review:'draft',scheduled:'scheduled',published:'published'};
-  if(id){ await api('PUT',`/api/articles/${id}`,{status:sm[col],category_id:catId||null}); const c=S.kanban.find(c=>String(c.id)===id);if(c){c.col=col;c.title=title;} }
+  if(id){ await api('PATCH',`/api/articles/${id}/status`,{status:sm[col]}); if(catId) await api('PUT',`/api/articles/${id}`,{category_id:catId}); const c=S.kanban.find(c=>String(c.id)===id);if(c){c.col=col;c.title=title;} }
   else { const sl=title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-'); const a=await api('POST','/api/articles',{title,slug:sl,status:sm[col],category_id:catId||null}); S.kanban.push({id:a.id,title,col,cat:''}); }
   closeMod('modal-kcard'); renderKanban(); toast('Carte mise à jour ✅');
 }
