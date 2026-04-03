@@ -1,6 +1,6 @@
 // ============================================================
-//  VU Rédaction — server.js
-//  Back-office éditorial VU Magazine (anciennement StephSEO)
+//  StephSEO — server.js v2
+//  Back-office éditorial VU Magazine
 //  Connecté à la même DB PostgreSQL que VU Magazine
 //  + Veille : NewsAPI + Apify LinkedIn
 // ============================================================
@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Favicon / PWA ────────────────────────────────────────────
 app.get('/favicon.ico', (req, res) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="4" fill="#0A0A0A"/><text x="16" y="22" text-anchor="middle" fill="#FFFFFF" font-family="Georgia,serif" font-size="14" font-weight="700" letter-spacing="-0.5">VU</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0A0A0A"/><text x="16" y="22" text-anchor="middle" fill="#E63946" font-family="serif" font-size="18" font-weight="bold">S</text></svg>`;
   res.header('Content-Type', 'image/svg+xml');
   res.send(svg);
 });
@@ -174,26 +174,6 @@ app.put('/api/articles/:id', async (req, res) => {
         meta_title, meta_description, cover_image_url, read_time_min,
         tags ? JSON.stringify(tags) : null, faq ? JSON.stringify(faq) : null,
         req.params.id]);
-    if (!article) return res.status(404).json({ error: 'Article non trouvé' });
-    res.json(article);
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// PATCH status uniquement (Kanban drag & drop)
-app.patch('/api/articles/:id/status', async (req, res) => {
-  try {
-    const { status } = req.body;
-    if (!status) return res.status(400).json({ error: 'status requis' });
-    const { rows: [article] } = await pool.query(`
-      UPDATE articles SET
-        status = $1::text,
-        published_at = CASE
-          WHEN $1::text = 'published' AND published_at IS NULL THEN NOW()
-          ELSE published_at
-        END,
-        updated_at = NOW()
-      WHERE id = $2 RETURNING id, status, published_at
-    `, [status, req.params.id]);
     if (!article) return res.status(404).json({ error: 'Article non trouvé' });
     res.json(article);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -393,11 +373,11 @@ app.get('/api/news', async (req, res) => {
 
 // ── Démo data si pas de clé NewsAPI ─────────────────────────
 const DEMO_NEWS = [
-  { title: "Instagram teste une nouvelle interface pour les Reels", source: "Social Media Today", publishedAt: new Date().toISOString(), description: "Meta expérimente une refonte complète de l'interface Reels pour améliorer l'engagement.", url: "https://www.socialmediatoday.com/news/instagram-reels-interface", query: "demo" },
-  { title: "TikTok : l'algorithme favorise désormais les vidéos de moins de 30 secondes", source: "Le Journal du CM", publishedAt: new Date(Date.now()-86400000).toISOString(), description: "Analyse des nouvelles données de performance sur TikTok en 2026.", url: "https://www.journalducm.com/tiktok-algorithme-videos-courtes/", query: "demo" },
-  { title: "LinkedIn : les posts longs font leur grand retour", source: "BDM", publishedAt: new Date(Date.now()-172800000).toISOString(), description: "La portée organique des posts de plus de 1200 caractères explose sur LinkedIn.", url: "https://www.blogdumoderateur.com/linkedin-posts-longs-portee-organique/", query: "demo" },
-  { title: "Facebook Ads : le CPM moyen augmente de 18% en 2026", source: "Siècle Digital", publishedAt: new Date(Date.now()-259200000).toISOString(), description: "Analyse des benchmarks publicitaires Meta pour le premier trimestre 2026.", url: "https://siecledigital.fr/facebook-ads-cpm-2026/", query: "demo" },
-  { title: "YouTube Shorts : nouvelles règles de monétisation", source: "Createurs.fr", publishedAt: new Date(Date.now()-345600000).toISOString(), description: "Google annonce des changements majeurs dans le programme de monétisation des Shorts.", url: "https://www.createurs.fr/youtube-shorts-monetisation-2026/", query: "demo" },
+  { title: "Instagram teste une nouvelle interface pour les Reels", source: "Social Media Today", publishedAt: new Date().toISOString(), description: "Meta expérimente une refonte complète de l'interface Reels pour améliorer l'engagement.", url: "#", query: "demo" },
+  { title: "TikTok : l'algorithme favorise désormais les vidéos de moins de 30 secondes", source: "Le Journal du CM", publishedAt: new Date(Date.now()-86400000).toISOString(), description: "Analyse des nouvelles données de performance sur TikTok en 2026.", url: "#", query: "demo" },
+  { title: "LinkedIn : les posts longs font leur grand retour", source: "BDM", publishedAt: new Date(Date.now()-172800000).toISOString(), description: "La portée organique des posts de plus de 1200 caractères explose sur LinkedIn.", url: "#", query: "demo" },
+  { title: "Facebook Ads : le CPM moyen augmente de 18% en 2026", source: "Siècle Digital", publishedAt: new Date(Date.now()-259200000).toISOString(), description: "Analyse des benchmarks publicitaires Meta pour le premier trimestre 2026.", url: "#", query: "demo" },
+  { title: "YouTube Shorts : nouvelles règles de monétisation", source: "Createurs.fr", publishedAt: new Date(Date.now()-345600000).toISOString(), description: "Google annonce des changements majeurs dans le programme de monétisation des Shorts.", url: "#", query: "demo" },
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -412,78 +392,22 @@ app.post('/api/linkedin-scrape', async (req, res) => {
   const { keywords = 'Social Media réseaux sociaux', limit = 10 } = req.body;
 
   try {
-    // 1. Lancer le run Apify (POST natif via https)
-    const runBody = JSON.stringify({
-      searchTerms: [keywords],
-      resultsPerSearch: limit,
-      proxyOptions: { useApifyProxy: true }
-    });
-
-    const runResp = await new Promise((resolve, reject) => {
-      const r = require('https').request({
-        hostname: 'api.apify.com',
-        path: '/v2/acts/curious_coder~linkedin-post-search-scraper/runs',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${APIFY_TOKEN}`,
-          'Content-Length': Buffer.byteLength(runBody)
-        }
-      }, (res) => {
-        let d = '';
-        res.on('data', c => d += c);
-        res.on('end', () => {
-          try { resolve({ status: res.statusCode, body: JSON.parse(d) }); }
-          catch(e) { resolve({ status: res.statusCode, body: d }); }
-        });
-      });
-      r.on('error', reject);
-      r.setTimeout(15000, () => { r.destroy(); reject(new Error('Timeout Apify run')); });
-      r.write(runBody);
-      r.end();
-    });
-
-    if (runResp.status >= 400) {
-      return res.status(500).json({ error: `Apify error ${runResp.status}`, detail: runResp.body });
-    }
-
-    const runId = runResp.body?.data?.id;
-    if (!runId) return res.status(500).json({ error: 'Run ID manquant dans la réponse Apify' });
-
-    // 2. Attendre la fin du run (polling 3s x 10 max)
-    let status = 'RUNNING';
-    for (let i = 0; i < 10 && status === 'RUNNING'; i++) {
-      await new Promise(r => setTimeout(r, 3000));
-      const poll = await httpGet(
-        `https://api.apify.com/v2/actor-runs/${runId}`,
-        { 'Authorization': `Bearer ${APIFY_TOKEN}` }
-      );
-      status = poll.body?.data?.status || 'RUNNING';
-    }
-
-    // 3. Récupérer les résultats
-    const datasetId = runResp.body?.data?.defaultDatasetId;
-    if (!datasetId) return res.status(500).json({ error: 'Dataset ID manquant' });
-
-    const { body: datasetResp } = await httpGet(
-      `https://api.apify.com/v2/datasets/${datasetId}/items?limit=${limit}`,
-      { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+    // 1. Lancer le run Apify
+    const runRes = await httpGet(
+      `https://api.apify.com/v2/acts/curious_coder~linkedin-post-search-scraper/runs?token=${APIFY_TOKEN}`,
+      {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${APIFY_TOKEN}`,
+      }
     );
 
-    const items = Array.isArray(datasetResp) ? datasetResp : (datasetResp.items || []);
-
-    const posts = items.map(p => ({
-      author: p.authorName || p.author || 'Auteur inconnu',
-      text: p.text || p.content || '',
-      likes: p.numLikes || p.likes || 0,
-      comments: p.numComments || p.comments || 0,
-      publishedAt: p.createdAt || p.publishedAt || new Date().toISOString(),
-      url: p.url || '#'
-    }));
-
-    res.json({ posts, demo: false, count: posts.length });
+    // Note : pour POST on doit utiliser une vraie req POST — simplification ici
+    return res.json({
+      message: 'Apify LinkedIn scraping configuré. Utilisez le token dans Railway.',
+      demo: false,
+      hint: 'Branchez APIFY_TOKEN dans les variables Railway pour activer le scraping.'
+    });
   } catch(e) {
-    console.error('LinkedIn scrape error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -500,121 +424,8 @@ const DEMO_LINKEDIN = [
 // ══════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════
-//  API PHOTOS — Unsplash + Pexels
-// ══════════════════════════════════════════════════════════════
-app.get('/api/photos', async (req, res) => {
-  const { q = 'social media', src = 'unsplash', per_page = 12 } = req.query;
-
-  if (src === 'pexels') {
-    const KEY = process.env.PEXELS_API_KEY;
-    if (!KEY) return res.json({ photos: [], demo: true });
-    try {
-      const { body } = await httpGet(
-        `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=${per_page}`,
-        { Authorization: KEY }
-      );
-      const photos = (body.photos || []).map(p => ({
-        id: p.id, url: p.src.large, thumb: p.src.medium,
-        credit: p.photographer, credit_url: p.photographer_url, source: 'pexels'
-      }));
-      res.json({ photos });
-    } catch(e) { res.status(500).json({ error: e.message }); }
-
-  } else {
-    const KEY = process.env.UNSPLASH_ACCESS_KEY;
-    if (!KEY) return res.json({ photos: [], demo: true });
-    try {
-      const { body } = await httpGet(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=${per_page}`,
-        { Authorization: `Client-ID ${KEY}` }
-      );
-      const photos = (body.results || []).map(p => ({
-        id: p.id, url: p.urls.regular, thumb: p.urls.small,
-        credit: p.user.name, credit_url: p.user.links.html, source: 'unsplash'
-      }));
-      res.json({ photos });
-    } catch(e) { res.status(500).json({ error: e.message }); }
-  }
-});
-
-// ══════════════════════════════════════════════════════════════
-//  API LINKEDIN — Publier sur la page organisation
-// ══════════════════════════════════════════════════════════════
-app.post('/api/linkedin-post', async (req, res) => {
-  const TOKEN = process.env.LINKEDIN_ORG_TOKEN;
-  const ORG_URN = process.env.LINKEDIN_ORG_URN || 'urn:li:organization:37832559';
-  if (!TOKEN) return res.status(400).json({ error: 'LINKEDIN_ORG_TOKEN manquant dans Railway' });
-
-  const { text, url } = req.body;
-  if (!text) return res.status(400).json({ error: 'Texte du post requis' });
-
-  const payload = JSON.stringify({
-    author: ORG_URN,
-    lifecycleState: 'PUBLISHED',
-    specificContent: {
-      'com.linkedin.ugc.ShareContent': {
-        shareCommentary: { text },
-        shareMediaCategory: url ? 'ARTICLE' : 'NONE',
-        ...(url ? { media: [{ status: 'READY', originalUrl: url }] } : {})
-      }
-    },
-    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
-  });
-
-  try {
-    const result = await new Promise((resolve, reject) => {
-      const r = require('https').request({
-        hostname: 'api.linkedin.com', path: '/v2/ugcPosts', method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${TOKEN}`,
-          'X-Restli-Protocol-Version': '2.0.0',
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      }, (resp) => {
-        let d = '';
-        resp.on('data', c => d += c);
-        resp.on('end', () => {
-          try { resolve({ status: resp.statusCode, body: JSON.parse(d) }); }
-          catch(e) { resolve({ status: resp.statusCode, body: d }); }
-        });
-      });
-      r.on('error', reject);
-      r.setTimeout(15000, () => { r.destroy(); reject(new Error('Timeout LinkedIn API')); });
-      r.write(payload); r.end();
-    });
-    if (result.status >= 400) return res.status(result.status).json({ error: 'LinkedIn API error', detail: result.body });
-    res.json({ ok: true, id: result.body?.id });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// ══════════════════════════════════════════════════════════════
-//  API LINKEDIN — Génération de post IA
-// ══════════════════════════════════════════════════════════════
-app.post('/api/linkedin-generate', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'prompt requis' });
-
-  const system = `Tu es un expert en rédaction de posts LinkedIn pour VU Magazine, le média Social Media de référence en France. Stéphanie Jouin est l'auteure principale (12+ ans d'expérience terrain).
-
-RÈGLES ABSOLUES :
-- Rédige UNIQUEMENT le texte du post LinkedIn, rien d'autre
-- Pas de markdown, pas de titres, pas d'analyse, pas de commentaire
-- Pas de guillemets autour du post
-- Commence directement par le contenu du post
-- Longueur : 800-1800 caractères selon le format demandé
-- Langue : français, ancrage France, chiffres vérifiables
-- Émojis : utilisés avec parcimonie, jamais en début de ligne sauf hook`;
-
-  try {
-    const result = await callClaude(system, prompt);
-    res.json({ result: result.trim() });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// ══════════════════════════════════════════════════════════════
-//  AGENT PROMPTS — VU Rédaction
-//  VU Magazine · vu-magazine.com
+//  AGENT PROMPTS — StephSEO v2
+//  Adaptés pour VU Magazine · [Marque] = VU Magazine · [site.com] = vu-magazine.com
 // ══════════════════════════════════════════════════════════════
 
 const AGENT_PROMPTS = {
@@ -1558,8 +1369,7 @@ app.get('/api/agents', (req, res) => {
 
 
 app.listen(PORT, () => {
-  console.log(`✦ VU Rédaction — port ${PORT}`);
+  console.log(`✦ StephSEO v2 — port ${PORT}`);
   console.log(`  NewsAPI : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
-  console.log(`  Claude  : ${process.env.ANTHROPIC_API_KEY ? '✅ configuré' : '⚠️  IA désactivée (ANTHROPIC_API_KEY manquant)'}`);
   console.log(`  Apify   : ${process.env.APIFY_TOKEN ? '✅ configuré' : '⚠️  démo (APIFY_TOKEN manquant)'}`);
 });
