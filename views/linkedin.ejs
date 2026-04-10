@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Agent LinkedIn'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Agent LinkedIn'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Agent <span>LinkedIn</span></div>
+        <div class="sec-sub">Générer · Adapter · Programmer</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+
+      <!-- Colonne gauche : source + options -->
+      <div class="vgap">
+
+        <!-- Source -->
+        <div class="card">
+          <div class="card-t">Source du post</div>
+          <div style="display:flex;gap:6px;margin-bottom:12px">
+            <button class="btn sm" id="li-src-a" onclick="switchLiSrc('article')" style="background:var(--accent);color:#fff">Depuis un article</button>
+            <button class="btn g sm" id="li-src-c" onclick="switchLiSrc('custom')">Texte libre</button>
+            <button class="btn g sm" id="li-src-v" onclick="switchLiSrc('veille')">Depuis la veille</button>
+          </div>
+          <!-- Article -->
+          <div id="li-ui-a">
+            <select class="sel" id="li-art-sel" onchange="loadLiArt()">
+              <option value="">-- Choisir un article --</option>
+            </select>
+            <div id="li-art-info" style="display:none;margin-top:8px;padding:8px;background:var(--surface);border-radius:var(--r);font-size:12px;color:var(--ink2)"></div>
+          </div>
+          <!-- Texte libre -->
+          <div id="li-ui-c" style="display:none">
+            <textarea class="ta" id="li-custom"
+              placeholder="Sujet ou texte à transformer en post LinkedIn…"
+              style="min-height:90px"></textarea>
+          </div>
+          <!-- Depuis la veille -->
+          <div id="li-ui-v" style="display:none">
+            <select class="sel" id="li-veille-sel">
+              <option value="">-- Article sauvegardé --</option>
+            </select>
+            <div id="li-veille-empty" style="font-size:12px;color:var(--ink3);margin-top:8px;display:none">
+              Aucun article sauvegardé. <a href="/veille" style="color:var(--blue);text-decoration:underline">Aller sur la Veille →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Options de génération -->
+        <div class="card">
+          <div class="card-t">✨ Options de génération</div>
+          <div class="g2">
+            <div class="field">
+              <div class="lbl">Format</div>
+              <select class="sel" id="li-fmt">
+                <option value="story">📖 Storytelling (hook + leçon)</option>
+                <option value="insight">💡 Insight expert (stat + analyse)</option>
+                <option value="thread">🧵 Thread (5 points clés)</option>
+                <option value="question">❓ Post engagement (question)</option>
+                <option value="benchmark">📊 Benchmark / Stat</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="lbl">Ton</div>
+              <select class="sel" id="li-tone">
+                <option value="stephanie">Stéphanie Jouin (experte, directe)</option>
+                <option value="media">VU Magazine (institutionnel)</option>
+                <option value="casual">Conversationnel (accessible)</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="lbl">CTA</div>
+              <select class="sel" id="li-cta">
+                <option value="article">→ Lire l'article complet</option>
+                <option value="newsletter">→ S'abonner à la newsletter</option>
+                <option value="comment">→ Partager en commentaire</option>
+                <option value="none">Aucun CTA</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="lbl">Hashtags</div>
+              <input class="inp" type="text" id="li-tags" value="#SocialMedia #Marketing #VUMagazine">
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn p" onclick="genLi()" style="flex:1" id="li-gen-btn">✨ Générer le post</button>
+            <button class="btn g" onclick="genLi()" title="Régénérer">↻</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne droite : preview + actions -->
+      <div class="vgap">
+
+        <!-- Aperçu -->
+        <div class="card">
+          <div class="card-t">
+            Aperçu LinkedIn
+            <div class="ai-badge">IA</div>
+          </div>
+          <!-- Simulation profil LinkedIn -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0A66C2,#004182);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">S</div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--ink)">Stéphanie Jouin</div>
+              <div style="font-size:10px;color:var(--ink3)">Social Media Expert · VU Magazine</div>
+            </div>
+          </div>
+          <div class="li-prev" id="li-prev"
+            contenteditable="true"
+            oninput="updateLiChars()"
+            style="white-space:pre-wrap">Sélectionnez une source et cliquez Générer…</div>
+          <div class="li-chars" id="li-chars">0 / 3000 car.</div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+            <button class="btn b" style="width:100%" onclick="copyLi()">📋 Copier le post</button>
+            <button class="btn p" style="width:100%" onclick="publishLinkedIn()">📤 Publier sur LinkedIn</button>
+            <button class="btn g" style="width:100%" onclick="openLinkedIn()">↗ Ouvrir dans LinkedIn</button>
+            <div style="display:flex;gap:6px">
+              <input class="inp" type="datetime-local" id="li-sched-dt" style="flex:1;font-size:12px">
+              <button class="btn g sm" onclick="schedLi()">⏰ Planifier</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Posts planifiés -->
+        <div class="card" id="li-sched-wrap" style="display:none">
+          <div class="card-t">Posts planifiés</div>
+          <div id="li-sched-list" class="vgap" style="gap:6px"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+// ── État local ────────────────────────────────────────────────
+let liArt   = null;
+let liSched = [];
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Charger articles
+  try {
+    const d = await api('GET', '/api/articles?limit=100&status=published');
+    const sel = document.getElementById('li-art-sel');
+    d.articles.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = a.title.substring(0, 65);
+      sel.appendChild(o);
+    });
+  } catch {}
+
+  // Charger sélection depuis la veille (sessionStorage)
+  try {
+    const stored = sessionStorage.getItem('veille-saved');
+    const saved  = stored ? JSON.parse(stored) : [];
+    const sel    = document.getElementById('li-veille-sel');
+    const empty  = document.getElementById('li-veille-empty');
+    if (saved.length) {
+      saved.forEach((a, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = a.title.substring(0, 65);
+        o.dataset.article = JSON.stringify(a);
+        sel.appendChild(o);
+      });
+      if (empty) empty.style.display = 'none';
+    } else {
+      if (empty) empty.style.display = '';
+    }
+  } catch {}
+
+  // Pré-sélection source via URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('src') === 'veille') switchLiSrc('veille');
+  else switchLiSrc('article');
+});
+
+// ── Source ────────────────────────────────────────────────────
+function switchLiSrc(src) {
+  ['article','custom','veille'].forEach(s => {
+    const btn = document.getElementById(`li-src-${s}`);
+    const ui  = document.getElementById(`li-ui-${s.charAt(0)}`);
+    if (btn) btn.style.cssText = s===src ? 'background:var(--accent);color:#fff' : '';
+    if (ui)  ui.style.display  = s===src ? '' : 'none';
+  });
+}
+
+async function loadLiArt() {
+  const id = document.getElementById('li-art-sel').value;
+  if (!id) { liArt = null; document.getElementById('li-art-info').style.display='none'; return; }
+  try {
+    liArt = await api('GET', `/api/articles/${id}`);
+    const info = document.getElementById('li-art-info');
+    if (info) {
+      info.style.display = '';
+      info.innerHTML = `<strong>${esc(liArt.title)}</strong><br><span style="color:var(--ink3)">${esc((liArt.excerpt||'').substring(0,100))}…</span>`;
+    }
+  } catch {}
+}
+
+// ── Génération ────────────────────────────────────────────────
+let _liRunning = false;
+async function genLi() {
+  if (_liRunning) return toast('Génération en cours…', 'i');
+  _liRunning = true;
+  const btn  = document.getElementById('li-gen-btn');
+  const prev = document.getElementById('li-prev');
+  if (btn)  btn.textContent = '⏳ Génération…';
+  if (prev) prev.textContent = '⏳ Génération en cours…';
+
+  const fmt  = document.getElementById('li-fmt').value;
+  const tone = document.getElementById('li-tone').value;
+  const cta  = document.getElementById('li-cta').value;
+  const tags = document.getElementById('li-tags').value;
+
+  // Source du contenu
+  let src = '';
+  const srcMode = document.querySelector('[id^="li-src-"][style*="var(--accent)"]')?.id?.replace('li-src-','') || 'article';
+  if (srcMode === 'article' && liArt) {
+    src = `Titre : ${liArt.title}\n\nContenu : ${(liArt.content||'').replace(/<[^>]+>/g,' ').trim().substring(0,1200)}`;
+  } else if (srcMode === 'veille') {
+    const sel = document.getElementById('li-veille-sel');
+    const opt = sel?.options[sel.selectedIndex];
+    if (opt?.dataset?.article) {
+      try {
+        const a = JSON.parse(opt.dataset.article);
+        src = `Titre : ${a.title}\n\n${a.description||''}`;
+      } catch {}
+    }
+  } else {
+    src = document.getElementById('li-custom')?.value || '';
+  }
+  if (!src.trim()) { toast('Sélectionnez ou saisissez une source', 'i'); _liRunning=false; if(btn)btn.textContent='✨ Générer le post'; return; }
+
+  const tones = {
+    stephanie: 'Stéphanie Jouin (experte Social Media 12 ans, directe, factuelle, France)',
+    media:     'VU Magazine (institutionnel, professionnel)',
+    casual:    'Conversationnel, accessible, humain'
+  };
+  const fmts = {
+    story:     'Storytelling : hook fort (1 phrase), développement (3-4 §), leçon actionnable',
+    insight:   'Insight expert : donnée précise en ouverture, analyse, implication pratique',
+    thread:    '5 points numérotés, stat-choc en intro, chaque point = 2-3 lignes',
+    question:  'Question provocante en ouverture, contexte, invitation au débat',
+    benchmark: 'Chiffre précis en ouverture, contexte Social Media France, comparaison'
+  };
+  const ctas = {
+    article:    'CTA final : Lire l\'article complet sur VU Magazine →',
+    newsletter: 'CTA final : S\'abonner à la newsletter VU Magazine',
+    comment:    'CTA final : Partager votre expérience en commentaire',
+    none:       ''
+  };
+
+  const prompt = `Génère un post LinkedIn pour ${tones[tone]}.\nFormat : ${fmts[fmt]}.\n${ctas[cta]}\nHashtags en fin de post : ${tags}\nLongueur : 1200-1800 caractères max. Pas de markdown. Texte du post uniquement.\n\nSource :\n${src}`;
+
+  try {
+    const r = await api('POST', '/api/linkedin-generate', {prompt});
+    const text = (r.result||'').replace(/<[^>]+>/g,'').trim();
+    if (prev) prev.textContent = text;
+    updateLiChars();
+    toast('✅ Post LinkedIn généré !');
+  } catch(e) {
+    if (prev) prev.textContent = '❌ ' + e.message;
+  } finally {
+    _liRunning = false;
+    if (btn) btn.textContent = '✨ Générer le post';
+  }
+}
+
+// ── Compteur caractères ───────────────────────────────────────
+function updateLiChars() {
+  const t  = document.getElementById('li-prev')?.textContent || '';
+  const el = document.getElementById('li-chars');
+  if (el) {
+    el.textContent = `${t.length} / 3000 car.`;
+    el.style.color = t.length > 3000 ? 'var(--accent)' : t.length > 2500 ? 'var(--yellow)' : 'var(--ink3)';
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────
+function copyLi() {
+  navigator.clipboard.writeText(document.getElementById('li-prev')?.textContent || '')
+    .then(() => toast('📋 Post copié !'))
+    .catch(() => toast('Erreur copie', 'e'));
+}
+
+function openLinkedIn() {
+  const t = document.getElementById('li-prev')?.textContent || '';
+  window.open('https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(t.substring(0,3000)), '_blank');
+}
+
+async function publishLinkedIn() {
+  const text = (document.getElementById('li-prev')?.textContent || '').trim();
+  if (!text || text.startsWith('Sélectionnez')) return toast('Générez un post d\'abord', 'i');
+  try {
+    toast('Publication en cours…', 'i');
+    const r = await api('POST', '/api/linkedin-post', {text});
+    if (r.ok) toast('✅ Publié sur LinkedIn !');
+    else toast('Erreur : ' + (r.error||'inconnue'), 'e');
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+function schedLi() {
+  const dt   = document.getElementById('li-sched-dt').value;
+  const text = document.getElementById('li-prev')?.textContent || '';
+  if (!dt || !text.trim()) return toast('Renseignez la date et le contenu', 'e');
+  liSched.push({dt, text: text.substring(0,80) + '…'});
+  renderSched();
+  toast('⏰ Post LinkedIn planifié !');
+}
+
+function renderSched() {
+  const wrap = document.getElementById('li-sched-wrap');
+  const list = document.getElementById('li-sched-list');
+  if (!wrap || !list) return;
+  wrap.style.display = liSched.length ? '' : 'none';
+  list.innerHTML = liSched.map((p, i) => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px;display:flex;gap:8px;align-items:start">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--blue);font-family:var(--mono);margin-bottom:3px">${new Date(p.dt).toLocaleString('fr-FR')}</div>
+        <div style="font-size:12px;color:var(--ink2)">${esc(p.text)}</div>
+      </div>
+      <button class="btn d sm" onclick="liSched.splice(${i},1);renderSched()">✕</button>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
