@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Planning'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Planning éditorial'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div><div class="sec-ttl">Planning <span>éditorial</span></div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="plan-tabs">
+          <div class="plan-tab on" id="tab-kanban" onclick="switchPlan('kanban',this)">⊟ Kanban</div>
+          <div class="plan-tab" id="tab-cal" onclick="switchPlan('cal',this)">📅 Calendrier</div>
+        </div>
+        <a href="/new-article" class="btn p sm">+ Nouvel article</a>
+      </div>
+    </div>
+
+    <!-- VUE KANBAN -->
+    <div id="kanban-view" class="kanban-wrap">
+      <div class="kcol" id="kcol-ideas"
+        ondragover="dov(event,'ideas')" ondrop="ddrop(event,'ideas')" ondragleave="dlv(event)">
+        <div class="kcol-hd">
+          <div class="kcol-dot" style="background:#656D76"></div>
+          <div class="kcol-name">💡 Idées</div>
+          <div class="kcol-cnt" id="kc-ideas">0</div>
+        </div>
+        <div class="kcards" id="kk-ideas"></div>
+        <div class="kadd" onclick="addCard('ideas')">+ Ajouter</div>
+      </div>
+      <div class="kcol" id="kcol-draft"
+        ondragover="dov(event,'draft')" ondrop="ddrop(event,'draft')" ondragleave="dlv(event)">
+        <div class="kcol-hd">
+          <div class="kcol-dot" style="background:#D29922"></div>
+          <div class="kcol-name">📝 Brouillon</div>
+          <div class="kcol-cnt" id="kc-draft">0</div>
+        </div>
+        <div class="kcards" id="kk-draft"></div>
+        <div class="kadd" onclick="addCard('draft')">+ Ajouter</div>
+      </div>
+      <div class="kcol" id="kcol-review"
+        ondragover="dov(event,'review')" ondrop="ddrop(event,'review')" ondragleave="dlv(event)">
+        <div class="kcol-hd">
+          <div class="kcol-dot" style="background:#388BFD"></div>
+          <div class="kcol-name">🔍 Relecture</div>
+          <div class="kcol-cnt" id="kc-review">0</div>
+        </div>
+        <div class="kcards" id="kk-review"></div>
+        <div class="kadd" onclick="addCard('review')">+ Ajouter</div>
+      </div>
+      <div class="kcol" id="kcol-scheduled"
+        ondragover="dov(event,'scheduled')" ondrop="ddrop(event,'scheduled')" ondragleave="dlv(event)">
+        <div class="kcol-hd">
+          <div class="kcol-dot" style="background:#BC8CFF"></div>
+          <div class="kcol-name">⏰ Programmé</div>
+          <div class="kcol-cnt" id="kc-scheduled">0</div>
+        </div>
+        <div class="kcards" id="kk-scheduled"></div>
+        <div class="kadd" onclick="addCard('scheduled')">+ Ajouter</div>
+      </div>
+      <div class="kcol" id="kcol-published"
+        ondragover="dov(event,'published')" ondrop="ddrop(event,'published')" ondragleave="dlv(event)">
+        <div class="kcol-hd">
+          <div class="kcol-dot" style="background:#3FB950"></div>
+          <div class="kcol-name">✅ Publié</div>
+          <div class="kcol-cnt" id="kc-published">0</div>
+        </div>
+        <div class="kcards" id="kk-published"></div>
+        <div class="kadd" onclick="window.location.href='/new-article'">+ Créer</div>
+      </div>
+    </div>
+
+    <!-- VUE CALENDRIER -->
+    <div id="cal-view" style="display:none">
+      <div class="cal-wrap">
+        <div class="cal-hd">
+          <button class="cal-nav" onclick="calNav(-1)">‹</button>
+          <div class="cal-month" id="cal-month"></div>
+          <button class="cal-nav" onclick="calNav(1)">›</button>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dn">Lun</div><div class="cal-dn">Mar</div><div class="cal-dn">Mer</div>
+          <div class="cal-dn">Jeu</div><div class="cal-dn">Ven</div><div class="cal-dn">Sam</div>
+          <div class="cal-dn">Dim</div>
+        </div>
+        <div class="cal-grid" id="cal-days"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<!-- Modal carte kanban -->
+<div class="modal-ov" id="modal-kcard">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="kmod-ttl">Nouvelle carte</div>
+      <button class="modal-x" onclick="closeMod('modal-kcard')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="kmod-id">
+      <div class="vgap">
+        <div class="field">
+          <div class="lbl">Titre</div>
+          <input class="inp" type="text" id="kmod-title" placeholder="Titre de l'article…">
+        </div>
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Catégorie</div>
+            <select class="sel sel-cats" id="kmod-cat"></select>
+          </div>
+          <div class="field">
+            <div class="lbl">Statut / Colonne</div>
+            <select class="sel" id="kmod-col">
+              <option value="ideas">💡 Idée</option>
+              <option value="draft">📝 Brouillon</option>
+              <option value="review">🔍 Relecture</option>
+              <option value="scheduled">⏰ Programmé</option>
+              <option value="published">✅ Publié</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl">Date cible</div>
+          <input class="inp" type="date" id="kmod-date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn d sm" id="kmod-del-btn" style="display:none" onclick="delKCard()">🗑 Supprimer</button>
+      <button class="btn g" onclick="closeMod('modal-kcard')">Annuler</button>
+      <button class="btn p" onclick="saveKCard()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+<script>
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+let kanban  = [];
+let dragCard = null;
+let calM, calY;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const now = new Date();
+  calM = now.getMonth();
+  calY = now.getFullYear();
+  await loadMeta();
+  await loadKanban();
+});
+
+// ── Chargement ────────────────────────────────────────────────
+async function loadKanban() {
+  try {
+    const d = await api('GET', '/api/articles?limit=200');
+    kanban = d.articles.map(a => ({
+      id:     a.id,
+      title:  a.title,
+      cat:    a.category_name,
+      color:  a.category_color,
+      col:    a.status === 'published' ? 'published' : a.status === 'scheduled' ? 'scheduled' : 'draft',
+      date:   a.published_at || a.updated_at,
+      author: a.author_name
+    }));
+    renderKanban();
+  } catch(e) { toast('Erreur chargement : ' + e.message, 'e'); }
+}
+
+// ── Kanban render ─────────────────────────────────────────────
+function renderKanban() {
+  ['ideas','draft','review','scheduled','published'].forEach(col => {
+    const cards = kanban.filter(c => c.col === col);
+    const cnt = document.getElementById(`kc-${col}`);
+    if (cnt) cnt.textContent = cards.length;
+    const el = document.getElementById(`kk-${col}`);
+    if (!el) return;
+    el.innerHTML = cards.map(c => `
+      <div class="kcard" draggable="true" id="kc-${c.id}"
+        ondragstart="dstart(event,'${c.id}')" ondragend="dend()">
+        ${c.cat ? `<div class="kcard-cat" style="color:${c.color||'#888'}">${esc(c.cat)}</div>` : ''}
+        <div class="kcard-ttl">${esc(c.title)}</div>
+        <div class="kcard-meta">
+          <div class="kcard-av">${(c.author||'?').charAt(0).toUpperCase()}</div>
+          ${c.date ? `<div class="kcard-date">${new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>` : ''}
+        </div>
+        <div class="kcard-acts" ondragstart="event.stopPropagation()">
+          <button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})" title="Modifier">✏</button>
+          <a class="kcbtn" href="${col==='published'?'/optimize?id='+c.id:'/new-article?id='+c.id}" title="Ouvrir">→</a>
+        </div>
+      </div>`).join('');
+  });
+}
+
+// ── Drag & Drop ───────────────────────────────────────────────
+function dstart(e, id) {
+  dragCard = kanban.find(c => String(c.id) === String(id));
+  document.getElementById(`kc-${id}`)?.classList.add('dragging');
+}
+function dend() {
+  dragCard = null;
+  document.querySelectorAll('.kcard').forEach(c => c.classList.remove('dragging'));
+}
+function dov(e, col) {
+  e.preventDefault();
+  document.getElementById(`kcol-${col}`)?.classList.add('dov');
+}
+function dlv(e) { e.currentTarget?.classList.remove('dov'); }
+async function ddrop(e, col) {
+  e.preventDefault();
+  e.currentTarget?.classList.remove('dov');
+  if (!dragCard) return;
+  dragCard.col = col;
+  renderKanban();
+  const sm = {ideas:'draft', draft:'draft', review:'draft', scheduled:'scheduled', published:'published'};
+  try {
+    await api('PATCH', `/api/articles/${dragCard.id}/status`, {status: sm[col] || 'draft'});
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+// ── Cartes ────────────────────────────────────────────────────
+function addCard(col)    { openKMod({id:null, col, title:'', cat:'', date:''}); }
+function editKCard(id)   {
+  const c = kanban.find(c => String(c.id) === String(id));
+  if (c) openKMod(c); else toast('Carte introuvable', 'e');
+}
+
+function openKMod(c) {
+  txt('kmod-ttl', c.id ? 'Modifier la carte' : 'Nouvelle carte');
+  document.getElementById('kmod-id').value    = c.id    || '';
+  document.getElementById('kmod-title').value = c.title || '';
+  document.getElementById('kmod-col').value   = c.col   || 'draft';
+  if (c.date) document.getElementById('kmod-date').value = c.date.substring(0,10);
+  else        document.getElementById('kmod-date').value = '';
+  // Bouton supprimer uniquement si carte existante
+  const delBtn = document.getElementById('kmod-del-btn');
+  if (delBtn) delBtn.style.display = c.id ? '' : 'none';
+  closeAllModals();
+  document.getElementById('modal-kcard').classList.add('open');
+  setTimeout(() => document.getElementById('kmod-title').focus(), 100);
+}
+
+async function saveKCard() {
+  const id    = document.getElementById('kmod-id').value;
+  const title = document.getElementById('kmod-title').value.trim();
+  const col   = document.getElementById('kmod-col').value;
+  const catId = document.getElementById('kmod-cat').value;
+  if (!title) return toast('Titre obligatoire', 'e');
+  const sm = {ideas:'draft', draft:'draft', review:'draft', scheduled:'scheduled', published:'published'};
+  try {
+    if (id) {
+      await api('PATCH', `/api/articles/${id}/status`, {status: sm[col]});
+      if (catId) await api('PUT', `/api/articles/${id}`, {category_id: catId});
+      const c = kanban.find(c => String(c.id) === id);
+      if (c) { c.col = col; c.title = title; }
+    } else {
+      const sl = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-');
+      const a  = await api('POST', '/api/articles', {title, slug:sl, status:sm[col], category_id:catId||null});
+      kanban.push({id:a.id, title, col, cat:'', color:'', date:'', author:''});
+    }
+    closeMod('modal-kcard');
+    renderKanban();
+    toast('✅ Carte mise à jour');
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+async function delKCard() {
+  const id = document.getElementById('kmod-id').value;
+  if (!id || !confirm('Archiver cet article ?')) return;
+  try {
+    await api('DELETE', `/api/articles/${id}`);
+    kanban = kanban.filter(c => String(c.id) !== id);
+    closeMod('modal-kcard');
+    renderKanban();
+    toast('Article archivé');
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+// ── Vues ──────────────────────────────────────────────────────
+function switchPlan(view, el) {
+  document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('on'));
+  el?.classList.add('on');
+  document.getElementById('kanban-view').style.display = view === 'kanban' ? '' : 'none';
+  document.getElementById('cal-view').style.display    = view === 'cal'    ? '' : 'none';
+  if (view === 'cal') renderCal();
+}
+
+// ── Calendrier ────────────────────────────────────────────────
+function calNav(d) {
+  calM += d;
+  if (calM < 0)  { calM = 11; calY--; }
+  if (calM > 11) { calM = 0;  calY++; }
+  renderCal();
+}
+
+function renderCal() {
+  txt('cal-month', `${MONTHS[calM]} ${calY}`);
+  const grid = document.getElementById('cal-days');
+  if (!grid) return;
+  const first = new Date(calY, calM, 1);
+  const last  = new Date(calY, calM + 1, 0);
+  const today = new Date();
+  let dow = (first.getDay() + 6) % 7;
+  const cells = [];
+  for (let i = 0; i < dow; i++)
+    cells.push({d: new Date(calY, calM, 1 - dow + i), om: true});
+  for (let i = 1; i <= last.getDate(); i++)
+    cells.push({d: new Date(calY, calM, i), om: false});
+  const rem = (7 - cells.length % 7) % 7;
+  for (let i = 1; i <= rem; i++)
+    cells.push({d: new Date(calY, calM + 1, i), om: true});
+
+  grid.innerHTML = cells.map(c => {
+    const isTod = c.d.toDateString() === today.toDateString();
+    const evts = kanban.filter(a => {
+      if (!a.date) return false;
+      const dd = new Date(a.date);
+      return dd.getDate()    === c.d.getDate() &&
+             dd.getMonth()   === c.d.getMonth() &&
+             dd.getFullYear()=== c.d.getFullYear();
+    });
+    return `<div class="cal-day ${c.om?'om':''} ${isTod?'today':''}">
+      <div class="cal-dn-num">${c.d.getDate()}</div>
+      ${evts.map(a =>
+        `<div class="cal-ev ${a.col==='published'?'pub':a.col==='scheduled'?'sch':'dft'}"
+          onclick="editKCard(${a.id})" title="${esc(a.title)}">
+          ${esc(a.title.substring(0,16))}…
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
