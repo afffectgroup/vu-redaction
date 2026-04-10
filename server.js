@@ -1368,6 +1368,104 @@ app.get('/api/agents', (req, res) => {
 
 
 
+
+// ── IMPORT WEBFLOW ────────────────────────────────────────────────────────────
+app.post('/api/import-webflow', async (req, res) => {
+  try {
+    const { since, token } = req.body;
+    const WF_TOKEN = token || process.env.WEBFLOW_API_TOKEN || '1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e';
+    const WF_COLLECTION = '64a4135c766c293d6f43a174';
+    const WF_CATS = '64a4135c766c293d6f43a171';
+    const cutoff = since ? new Date(since) : new Date('2026-03-23T23:59:59Z');
+
+    // Fetch catégories Webflow
+    const catsRes = await fetch(`https://api.webflow.com/v2/collections/${WF_CATS}/items?limit=100`, {
+      headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
+    });
+    const catsData = await catsRes.json();
+    const catMap = {};
+    for (const c of (catsData.items || [])) {
+      catMap[c.id] = c.fieldData?.name || c.fieldData?.slug || 'Autre';
+    }
+
+    // Fetch articles Webflow (toutes les pages)
+    let allItems = [], offset = 0;
+    while (true) {
+      const r = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items?limit=100&offset=${offset}&sortBy=lastUpdated&sortOrder=desc`, {
+        headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
+      });
+      const d = await r.json();
+      const items = d.items || [];
+      allItems = allItems.concat(items);
+      if (items.length < 100) break;
+      offset += 100;
+    }
+
+    // Filtrer les nouveaux
+    const newItems = allItems.filter(i => new Date(i.lastUpdated) > cutoff);
+
+    const imported = [], skipped = [], errors = [];
+    for (const item of newItems) {
+      const f = item.fieldData || {};
+      const slug = f.slug || f.name?.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+      // Vérifier si déjà en DB
+      const exists = await pool.query('SELECT id FROM articles WHERE slug=$1', [slug]);
+      if (exists.rows.length > 0) { skipped.push(slug); continue; }
+
+      // Récupérer catégorie
+      const wfCatId = Array.isArray(f.categories) ? f.categories[0] : f.category;
+      const catName = catMap[wfCatId] || 'Autre';
+      const catRow = await pool.query("SELECT id FROM categories WHERE name ILIKE $1 LIMIT 1", [catName]);
+      const catId = catRow.rows[0]?.id || null;
+
+      // Récupérer auteur
+      const authorRow = await pool.query("SELECT id FROM authors WHERE name ILIKE $1 LIMIT 1", ['Stéphanie Jouin']);
+      const authorId = authorRow.rows[0]?.id || null;
+
+      // Image
+      const imgUrl = f['cover-image']?.url || f['main-image']?.url || f['image']?.url || f['thumbnail']?.url || null;
+
+      // Contenu
+      const content = f['content'] || f['post-body'] || f['body'] || f['article-body'] || '';
+      const excerpt = f['excerpt'] || f['summary'] || content.replace(/<[^>]+>/g,'').substring(0,200);
+
+      try {
+        await pool.query(`
+          INSERT INTO articles (slug, title, excerpt, content, cover_image_url, 
+            category_id, author_id, author_name, status, published_at, created_at)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'published',$9,NOW())
+        `, [
+          slug,
+          f.name || f.title || slug,
+          excerpt,
+          content,
+          imgUrl,
+          catId,
+          authorId,
+          'Stéphanie Jouin',
+          new Date(f['publish-date'] || item.lastUpdated)
+        ]);
+        imported.push(slug);
+      } catch(e) {
+        errors.push({slug, error: e.message});
+      }
+    }
+
+    res.json({ 
+      total_webflow: allItems.length,
+      new_after_cutoff: newItems.length,
+      imported: imported.length, 
+      skipped: skipped.length,
+      errors: errors.length,
+      imported_slugs: imported,
+      error_details: errors
+    });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✦ StephSEO v2 — port ${PORT}`);
   console.log(`  NewsAPI : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
