@@ -1471,6 +1471,18 @@ app.post('/api/import-webflow', async (req, res) => {
   }
 });
 
+
+// ── WEBFLOW CATEGORIES DEBUG ─────────────────────────────────────────────────
+app.get('/api/webflow-categories', async (req, res) => {
+  try {
+    const r = await fetch('https://api.webflow.com/v2/collections/64a4135c766c293d6f43a171/items?limit=100', {
+      headers: { 'Authorization': 'Bearer 1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e', 'accept': 'application/json' }
+    });
+    const d = await r.json();
+    res.json(d.items?.map(c => ({ id: c.id, name: c.fieldData?.name, slug: c.fieldData?.slug })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.listen(PORT, () => {
   console.log(`✦ StephSEO v2 — port ${PORT}`);
   console.log(`  NewsAPI : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
