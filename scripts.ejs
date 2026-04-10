@@ -1,0 +1,34 @@
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<!-- Modal média commun -->
+<div class="modal-ov" id="modal-media">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-ttl">🖼 Choisir une image</div>
+      <button class="modal-x" onclick="closeMod('modal-media')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="btn sm" id="ms2-u" onclick="switchMSrc2('unsplash')" style="background:var(--accent);color:#fff">Unsplash</button>
+        <button class="btn g sm" id="ms2-p" onclick="switchMSrc2('pexels')">Pexels</button>
+        <button class="btn g sm" id="ms2-up" onclick="switchMSrc2('upload')">Upload</button>
+        <div class="srch" style="flex:1">
+          <span class="srch-ico">🔍</span>
+          <input class="srch-inp" type="text" id="m-modal-srch" placeholder="Chercher…" onkeydown="if(event.key==='Enter')searchMedia('modal')">
+        </div>
+        <button class="btn g sm" onclick="searchMedia('modal')">→</button>
+      </div>
+      <div class="media-grid" id="modal-media-grid">
+        <div class="loading" style="grid-column:1/-1"><div class="spin"></div></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('modal-media')">Annuler</button>
+      <button class="btn p" onclick="confirmMedia()">Utiliser</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts partagés -->
+<script src="/js/shared.js"></script>

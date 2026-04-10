@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Dashboard'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Dashboard'}) %>
+  <div class="page-scroll">
+
+    <div class="dash-welcome">
+      <div>
+        <div class="serif-heading">Bonjour <span style="color:var(--accent)">Stéphanie</span> 👋</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:3px" id="dash-date"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--serif);font-size:34px;color:var(--orange)" id="dash-pub">—</div>
+        <div style="font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase">articles publiés</div>
+      </div>
+    </div>
+
+    <div class="stats4" style="margin-bottom:18px">
+      <div class="stat ac"><div class="stat-lbl">Publiés</div><div class="stat-val" id="s-pub">—</div><div class="stat-sub" id="s-7d">+0 cette semaine</div></div>
+      <div class="stat"><div class="stat-lbl">Brouillons</div><div class="stat-val" id="s-dft">—</div><div class="stat-sub">En attente</div></div>
+      <div class="stat gr"><div class="stat-lbl">Vues totales</div><div class="stat-val" id="s-views">—</div><div class="stat-sub">All time</div></div>
+      <div class="stat bl"><div class="stat-lbl">Ce mois</div><div class="stat-val" id="s-month">—</div><div class="stat-sub">Articles</div></div>
+    </div>
+
+    <div class="g2">
+      <div>
+        <div class="sec-hd">
+          <div class="sec-ttl" style="font-size:16px">Activité récente</div>
+          <a href="/articles" class="btn g sm">Voir tout →</a>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Article</th><th>Statut</th><th></th></tr></thead>
+            <tbody id="dash-recent">
+              <tr><td colspan="3"><div class="loading"><div class="spin"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="sec-hd">
+          <div class="sec-ttl" style="font-size:16px">Veille du jour</div>
+          <a href="/veille" class="btn g sm">Tout voir →</a>
+        </div>
+        <div id="dash-news" style="display:flex;flex-direction:column;gap:7px">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+(function() {
+  // Date
+  const j=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const m=['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  const d=new Date();
+  const el=document.getElementById('dash-date');
+  if(el) el.textContent=`${j[d.getDay()]} ${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()}`;
+
+  // Stats
+  api('GET','/api/stats').then(data => {
+    const s = data.stats || {};
+    txt('s-pub', s.published||0); txt('dash-pub', s.published||0);
+    txt('s-7d', `+${s.last_7d||0} cette semaine`);
+    txt('s-dft', s.drafts||0);
+    txt('s-views', parseInt(s.total_views||0).toLocaleString('fr'));
+    txt('s-month', s.last_30d||0);
+    const ba = document.getElementById('badge-arts');
+    if(ba) ba.textContent = s.total||0;
+    txt('status-txt', `DB connectée · ${s.total||0} articles`);
+
+    // Activité récente
+    document.getElementById('dash-recent').innerHTML = (data.recent||[]).map(a => `
+      <tr>
+        <td class="td-main">${esc(a.title)}<small>${a.slug}</small></td>
+        <td><span class="badge ${a.status==='published'?'b-pub':a.status==='scheduled'?'b-sch':'b-dft'}">${a.status==='published'?'✅':a.status==='scheduled'?'⏰':'📝'}</span></td>
+        <td><a href="/new-article?id=${a.id}" class="btn g sm">Éditer</a></td>
+      </tr>`).join('') || '<tr><td colspan="3"><div class="empty">Aucun article</div></td></tr>';
+  }).catch(e => txt('status-txt', 'Erreur DB'));
+
+  // Veille
+  api('GET','/api/news').then(nd => {
+    const dn = document.getElementById('dash-news');
+    if(!dn) return;
+    dn.innerHTML = (nd.articles||[]).slice(0,4).map(n => `
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:10px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px">${esc(n.source)}</div>
+        <div style="font-size:12px;font-weight:500;color:var(--ink)">${esc(n.title)}</div>
+        <div style="margin-top:6px"><a href="/new-article?inspiration=${encodeURIComponent(n.title)}" class="btn g sm" style="font-size:11px">✍️ S'inspirer</a></div>
+      </div>`).join('');
+  }).catch(() => {
+    const dn = document.getElementById('dash-news');
+    if(dn) dn.innerHTML = '<div style="font-size:12px;color:var(--ink3)">Configurez NEWS_API_KEY pour la veille</div>';
+  });
+})();
+</script>
+</body>
+</html>
