@@ -1483,6 +1483,97 @@ app.get('/api/webflow-categories', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ── FIX DB COMPLET ────────────────────────────────────────────────────────────
+app.post('/api/fix-db', async (req, res) => {
+  const results = { categories: [], dates_updated: 0, interviews_reassigned: 0, errors: [] };
+  const WF_TOKEN = '1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e';
+  const WF_ARTICLES = '64a4135c766c293d6f43a174';
+  const WF_CAT_INTERVIEWS = '680522286054fd4e161e10be';
+
+  try {
+    // 1. Renommer "Interviews" → "Voir tout" + slug reseaux-sociaux
+    await pool.query("UPDATE categories SET name='Voir tout', slug='voir-tout' WHERE name='Interviews' AND slug='interviews'");
+    results.categories.push('Renamed Interviews → Voir tout');
+
+    // 2. Créer vraie catégorie Interviews si elle n'existe pas
+    const existInt = await pool.query("SELECT id FROM categories WHERE slug='interviews'");
+    let interviewsCatId;
+    if (existInt.rows.length === 0) {
+      const ins = await pool.query("INSERT INTO categories (name, slug, color, sort_order) VALUES ('Interviews', 'interviews', '#C8303C', 11) RETURNING id");
+      interviewsCatId = ins.rows[0].id;
+      results.categories.push('Created Interviews category: ' + interviewsCatId);
+    } else {
+      interviewsCatId = existInt.rows[0].id;
+      results.categories.push('Interviews category already exists: ' + interviewsCatId);
+    }
+
+    // 3. Ajouter catégories manquantes
+    const missingCats = [
+      {name:'Impact', slug:'impact', color:'#2D6A4F'},
+      {name:'Intelligence artificielle', slug:'intelligence-artificielle', color:'#6B46C1'},
+      {name:'Publicité', slug:'publicite', color:'#D97706'},
+      {name:'Prospection', slug:'prospection', color:'#0369A1'},
+      {name:'Marketing', slug:'marketing', color:'#DC2626'}
+    ];
+    for (const c of missingCats) {
+      const exists = await pool.query('SELECT id FROM categories WHERE slug=$1', [c.slug]);
+      if (exists.rows.length === 0) {
+        await pool.query('INSERT INTO categories (name, slug, color) VALUES ($1,$2,$3)', [c.name, c.slug, c.color]);
+        results.categories.push('Added: ' + c.name);
+      }
+    }
+
+    // 4. Récupérer tous les articles Webflow pour synchro dates + catégories
+    let allWfItems = [];
+    let offset = 0;
+    while (true) {
+      const r = await fetch(`https://api.webflow.com/v2/collections/${WF_ARTICLES}/items?limit=100&offset=${offset}`, {
+        headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
+      });
+      const d = await r.json();
+      allWfItems = allWfItems.concat(d.items || []);
+      if ((d.items || []).length < 100) break;
+      offset += 100;
+    }
+
+    // 5. Pour chaque article Webflow : mettre à jour published_at + catégorie interviews
+    for (const item of allWfItems) {
+      const slug = item.fieldData?.slug;
+      if (!slug) continue;
+
+      // Vraie date de publication
+      const pubDate = item.fieldData?.['publish-date'] || item.fieldData?.['published-on'] || item.fieldData?.['date'] || item.lastUpdated;
+
+      // Est-ce un article Interviews ?
+      const cats = item.fieldData?.categories || [];
+      const isInterview = Array.isArray(cats) ? cats.includes(WF_CAT_INTERVIEWS) : cats === WF_CAT_INTERVIEWS;
+
+      try {
+        if (isInterview) {
+          await pool.query(
+            "UPDATE articles SET published_at=$1, category_id=$2 WHERE slug=$3 OR slug LIKE $4",
+            [new Date(pubDate), interviewsCatId, slug, slug.substring(0,40) + '%']
+          );
+          results.interviews_reassigned++;
+        } else {
+          await pool.query(
+            "UPDATE articles SET published_at=$1 WHERE slug=$2 OR slug LIKE $3",
+            [new Date(pubDate), slug, slug.substring(0,40) + '%']
+          );
+        }
+        results.dates_updated++;
+      } catch(e) {
+        results.errors.push({slug, error: e.message.substring(0,50)});
+      }
+    }
+
+    res.json({ success: true, wf_total: allWfItems.length, ...results });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message, partial: results });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✦ StephSEO v2 — port ${PORT}`);
   console.log(`  NewsAPI : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
