@@ -163,7 +163,7 @@ app.get('/api/stats', async (req, res) => {
         (SELECT COUNT(*) FROM authors) AS authors
     `);
     const { rows: recent } = await pool.query(`
-      SELECT a.slug, a.title, a.status, a.published_at, a.view_count,
+      SELECT a.id, a.slug, a.title, a.status, a.published_at, a.view_count,
              c.name AS category_name, c.color AS category_color,
              au.name AS author_name
       FROM articles a
@@ -294,6 +294,24 @@ app.post('/api/slug', async (req, res) => {
     "SELECT COUNT(*) FROM articles WHERE slug LIKE $1", [`${slug}%`]
   );
   res.json({ slug: parseInt(count) > 0 ? `${slug}-${count}` : slug });
+});
+
+// FIX: route PATCH statut manquante — utilisée par le Kanban drag-and-drop
+app.patch('/api/articles/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['draft', 'published', 'scheduled', 'archived', 'ideas', 'review'];
+    // Normaliser les statuts Kanban vers les statuts DB
+    const statusMap = { ideas: 'draft', review: 'draft', draft: 'draft', scheduled: 'scheduled', published: 'published', archived: 'archived' };
+    const dbStatus = statusMap[status] || 'draft';
+    const { rows: [article] } = await pool.query(
+      `UPDATE articles SET status=$1, updated_at=NOW()
+       WHERE id=$2 RETURNING id, title, status`,
+      [dbStatus, req.params.id]
+    );
+    if (!article) return res.status(404).json({ error: 'Article non trouvé' });
+    res.json(article);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -1184,6 +1202,70 @@ app.post('/api/fix-db', async (req, res) => {
     res.json({ success: true, wf_total: allWfItems.length, ...results });
   } catch(e) {
     res.status(500).json({ success: false, error: e.message, partial: results });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  API LINKEDIN — Génération de post via Claude
+// ══════════════════════════════════════════════════════════════
+app.post('/api/linkedin-generate', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt requis' });
+  try {
+    const result = await callClaude(
+      `Tu es Stéphanie Jouin, experte Social Media depuis 12 ans, fondatrice de VU Magazine.
+Tu génères des posts LinkedIn percutants, directs, factuels. Ancrage France.
+RÈGLES : Pas de markdown, pas de titres, pas de gras. Texte brut uniquement.
+Longueur : 1200-1800 caractères max. CTA naturel en fin si demandé.`,
+      prompt
+    );
+    res.json({ result, timestamp: new Date().toISOString() });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  API PHOTOS — Proxy Unsplash / Pexels
+// ══════════════════════════════════════════════════════════════
+app.get('/api/photos', async (req, res) => {
+  const { q = 'social media marketing', src = 'unsplash', per_page = 12 } = req.query;
+
+  try {
+    if (src === 'unsplash') {
+      const KEY = process.env.UNSPLASH_ACCESS_KEY;
+      if (!KEY) return res.json({ photos: [], demo: true });
+      const { body } = await httpGet(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=${per_page}&orientation=landscape`,
+        { 'Authorization': `Client-ID ${KEY}` }
+      );
+      const photos = (body.results || []).map(p => ({
+        url: p.urls?.regular || p.urls?.full,
+        thumb: p.urls?.small,
+        credit: p.user?.name || 'Unsplash',
+        credit_url: `${p.user?.links?.html}?utm_source=vu_redaction&utm_medium=referral`
+      }));
+      return res.json({ photos });
+    }
+
+    if (src === 'pexels') {
+      const KEY = process.env.PEXELS_API_KEY;
+      if (!KEY) return res.json({ photos: [], demo: true });
+      const { body } = await httpGet(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=${per_page}&orientation=landscape`,
+        { 'Authorization': KEY }
+      );
+      const photos = (body.photos || []).map(p => ({
+        url: p.src?.large || p.src?.original,
+        thumb: p.src?.medium,
+        credit: p.photographer || 'Pexels',
+        credit_url: p.photographer_url || 'https://pexels.com'
+      }));
+      return res.json({ photos });
+    }
+
+    res.json({ photos: [] });
+  } catch(e) {
+    console.error('Photos error:', e.message);
+    res.json({ photos: [], error: e.message });
   }
 });
 
