@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Veille'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Veille Social Media'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Veille <span>Social Media</span></div>
+        <div class="sec-sub">Actualités · NewsAPI · Curation</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="flt-sel" id="veille-topic" onchange="loadNews()">
+          <option value="social media reseaux sociaux">Social Media</option>
+          <option value="instagram reels algorithme">Instagram</option>
+          <option value="tiktok algorithme creators">TikTok</option>
+          <option value="linkedin portee organique">LinkedIn</option>
+          <option value="facebook meta algorithme">Facebook / Meta</option>
+          <option value="youtube shorts creators">YouTube</option>
+          <option value="snapchat pinterest reddit">Snapchat · Pinterest · Reddit</option>
+        </select>
+        <button class="btn g sm" onclick="loadNews()">↻ Actualiser</button>
+      </div>
+    </div>
+
+    <!-- Banner démo -->
+    <div id="v-demo-banner" style="display:none;background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.2);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:12px">
+      Mode démo · <strong>NEWS_API_KEY</strong> manquante.
+      <a href="https://newsapi.org" target="_blank" style="text-decoration:underline;margin-left:4px">Obtenir une clé →</a>
+    </div>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="btn sm" id="vt-n" style="background:var(--accent);color:#fff" onclick="switchVTab('news')">
+        📰 Actualités
+      </button>
+      <button class="btn g sm" id="vt-s" onclick="switchVTab('saved')">
+        ✅ Sélection <span id="sv-cnt-badge">0</span>
+      </button>
+    </div>
+
+    <!-- Layout 2 colonnes -->
+    <div class="v2col">
+
+      <!-- Colonne gauche : flux articles -->
+      <div>
+        <div id="v-news-list">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+        <div id="v-saved-list" style="display:none"></div>
+      </div>
+
+      <!-- Colonne droite : sélection sticky -->
+      <div class="saved-pnl">
+        <div class="card">
+          <div class="card-t">
+            Sélection <span id="sv-cnt">0</span>
+            <button class="btn g sm" onclick="clearSaved()" style="font-size:11px">Vider</button>
+          </div>
+          <div class="sv-list" id="sv-items">
+            <div style="font-size:12px;color:var(--ink3);font-style:italic">Cliquez + Sauvegarder…</div>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+            <button class="btn p" style="width:100%" onclick="createFromSaved()">
+              ✍️ Créer un article
+            </button>
+            <a href="/linkedin" id="li-from-saved-btn" class="btn b" style="width:100%;display:none;text-align:center">
+              𝗶𝗻 Post LinkedIn
+            </a>
+          </div>
+          <!-- Conseils -->
+          <div style="margin-top:12px;padding:10px;background:var(--surface);border-radius:var(--r);font-size:11px;color:var(--ink3);line-height:1.6">
+            💡 Sauvegardez 2-3 articles puis cliquez <strong>Créer un article</strong> pour générer un article VU Magazine à partir de ces sources.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+// ── État local ────────────────────────────────────────────────
+let saved = [];
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Récupérer la sélection depuis sessionStorage (persistance inter-pages)
+  try {
+    const stored = sessionStorage.getItem('veille-saved');
+    if (stored) { saved = JSON.parse(stored); updateSavedUI(); }
+  } catch {}
+  loadNews();
+});
+
+// ── Chargement news ───────────────────────────────────────────
+async function loadNews() {
+  const cl = document.getElementById('v-news-list');
+  if (cl) cl.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  const topic = document.getElementById('veille-topic')?.value || 'social media';
+  try {
+    const d = await api('GET', `/api/news?q=${encodeURIComponent(topic)}`);
+    if (d.demo) {
+      const b = document.getElementById('v-demo-banner');
+      if (b) b.style.display = '';
+    }
+    renderNews(d.articles || []);
+  } catch(e) {
+    if (cl) cl.innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+  }
+}
+
+// ── Rendu liste articles ──────────────────────────────────────
+function renderNews(articles) {
+  const cl = document.getElementById('v-news-list');
+  if (!cl) return;
+  if (!articles.length) {
+    cl.innerHTML = '<div class="empty">Aucune actualité trouvée</div>';
+    return;
+  }
+  cl.innerHTML = articles.map((a, i) => {
+    const sv = saved.some(s => s.url === a.url);
+    return `<div class="news-it ${sv?'sv':''}" id="ni-${i}">
+      ${a.urlToImage ? `<div class="news-thumb"><img src="${esc(a.urlToImage)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
+      <div style="flex:1;min-width:0">
+        <div class="news-src">${esc(a.source)} · ${a.publishedAt ? new Date(a.publishedAt).toLocaleDateString('fr-FR') : ''}</div>
+        <div class="news-ttl">${esc(a.title)}</div>
+        ${a.description ? `<div class="news-desc">${esc(a.description.substring(0,120))}…</div>` : ''}
+        <div class="news-acts">
+          <button class="btn ${sv?'d':'g'} sm" onclick="toggleSave(${i},'${esc(JSON.stringify(a))}')">${sv ? '✓ Sauvegardé' : '+ Sauvegarder'}</button>
+          ${a.url && a.url !== '#' ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="btn g sm">↗ Lire</a>` : ''}
+          <a href="/new-article?inspiration=${encodeURIComponent(a.title)}" class="btn g sm">✍️ S'inspirer</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Sauvegarde articles ───────────────────────────────────────
+function toggleSave(i, js) {
+  let a;
+  try { a = JSON.parse(js); } catch { return; }
+  const idx = saved.findIndex(s => s.url === a.url);
+  if (idx >= 0) saved.splice(idx, 1);
+  else saved.push(a);
+  // Persister dans sessionStorage
+  try { sessionStorage.setItem('veille-saved', JSON.stringify(saved)); } catch {}
+  updateSavedUI();
+  const card = document.getElementById(`ni-${i}`);
+  if (!card) return;
+  card.classList.toggle('sv', idx < 0);
+  const btn = card.querySelector('.news-acts button');
+  if (btn) { btn.className=`btn ${idx<0?'d':'g'} sm`; btn.textContent=idx<0?'✓ Sauvegardé':'+ Sauvegarder'; }
+}
+
+function updateSavedUI() {
+  const c = saved.length;
+  txt('sv-cnt', c);
+  txt('sv-cnt-badge', c);
+  // Bouton LinkedIn
+  const lb = document.getElementById('li-from-saved-btn');
+  if (lb) lb.style.display = c > 0 ? '' : 'none';
+  const list = document.getElementById('sv-items');
+  if (!list) return;
+  if (!c) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--ink3);font-style:italic">Cliquez + Sauvegarder…</div>';
+    return;
+  }
+  list.innerHTML = saved.map((a, i) => `
+    <div class="sv-it">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em">${esc(a.source)}</div>
+        <div style="font-size:12px;font-weight:500;color:var(--ink)">${esc(a.title.substring(0,55))}…</div>
+      </div>
+      <button class="sv-del" onclick="removeSaved(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeSaved(i) {
+  saved.splice(i, 1);
+  try { sessionStorage.setItem('veille-saved', JSON.stringify(saved)); } catch {}
+  updateSavedUI();
+}
+
+function clearSaved() {
+  saved = [];
+  try { sessionStorage.removeItem('veille-saved'); } catch {}
+  updateSavedUI();
+  // Re-render news pour décocher les boutons
+  document.querySelectorAll('.news-it.sv').forEach(el => {
+    el.classList.remove('sv');
+    const btn = el.querySelector('.news-acts button');
+    if (btn) { btn.className='btn g sm'; btn.textContent='+ Sauvegarder'; }
+  });
+}
+
+// ── Onglets Actualités / Sélection ───────────────────────────
+function switchVTab(tab) {
+  const isN = tab === 'news';
+  document.getElementById('v-news-list').style.display  = isN ? '' : 'none';
+  document.getElementById('v-saved-list').style.display = isN ? 'none' : '';
+  if (!isN) {
+    document.getElementById('v-saved-list').innerHTML = saved.length
+      ? saved.map(a => `
+          <div class="news-it" style="margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div class="news-src">${esc(a.source)}</div>
+              <div class="news-ttl">${esc(a.title)}</div>
+              <div class="news-acts">
+                <a href="/new-article?inspiration=${encodeURIComponent(a.title)}" class="btn g sm">✍️ Créer un article</a>
+              </div>
+            </div>
+          </div>`).join('')
+      : '<div class="empty">Aucun article sauvegardé</div>';
+  }
+  const btnN = document.getElementById('vt-n');
+  const btnS = document.getElementById('vt-s');
+  if (btnN) btnN.style.cssText = isN ? 'background:var(--accent);color:#fff' : '';
+  if (btnS) btnS.className = `btn ${isN?'g':'p'} sm`;
+}
+
+// ── Actions sur la sélection ──────────────────────────────────
+function createFromSaved() {
+  if (!saved.length) return toast('Sélectionnez des articles d\'abord', 'i');
+  // Passer les titres en paramètre URL
+  const sources = saved.map(a => a.title).join(' · ');
+  const firstTitle = saved[0]?.title || '';
+  const url = `/new-article?inspiration=${encodeURIComponent(firstTitle)}&sources=${encodeURIComponent(sources)}`;
+  window.location.href = url;
+}
+</script>
+</body>
+</html>
