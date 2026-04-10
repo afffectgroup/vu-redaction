@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Partenaires'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Partenaires & Affiliés'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Partenaires <span>&amp; Affiliés</span></div>
+        <div class="sec-sub">Gérer les partenaires et liens affiliés</div>
+      </div>
+      <button class="btn p" onclick="openPartnerModal()">+ Nouveau partenaire</button>
+    </div>
+
+    <!-- Filtres -->
+    <div class="tbl-wrap">
+      <div class="tbl-tb">
+        <div class="srch">
+          <span class="srch-ico">🔍</span>
+          <input class="srch-inp" type="text" id="partner-srch"
+            placeholder="Rechercher un partenaire…"
+            oninput="filterPartners(this.value)">
+        </div>
+        <select class="flt-sel" id="partner-status-f" onchange="filterPartners()">
+          <option value="">Tous statuts</option>
+          <option value="published">✅ Publiés</option>
+          <option value="draft">📝 Brouillons</option>
+        </select>
+        <div style="font-size:12px;color:var(--ink3);margin-left:auto" id="partner-count"></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Badge</th>
+            <th>Note</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="partners-list">
+          <tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<!-- Modal partenaire -->
+<div class="modal-ov" id="partner-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="partner-modal-title">Nouveau partenaire</div>
+      <button class="modal-x" onclick="closeMod('partner-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="partner-id">
+      <div class="vgap">
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Nom *</div>
+            <input class="inp" type="text" id="partner-name" placeholder="ex: Canva">
+          </div>
+          <div class="field">
+            <div class="lbl">Catégorie</div>
+            <input class="inp" type="text" id="partner-cat" placeholder="creation, planification…">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Badge</div>
+            <select class="sel" id="partner-badge">
+              <option value="Affilié">Affilié</option>
+              <option value="Partenaire">Partenaire</option>
+              <option value="Recommandé">Recommandé</option>
+              <option value="Sponsorisé">Sponsorisé</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="lbl">Note (/5)</div>
+            <input class="inp" type="number" id="partner-rating" min="0" max="5" step="0.1" placeholder="4.5">
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl">Description courte</div>
+          <textarea class="ta" id="partner-desc" style="min-height:70px"></textarea>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">URL affilié</div>
+            <input class="inp" type="url" id="partner-affiliate" placeholder="https://…">
+          </div>
+          <div class="field">
+            <div class="lbl">Site web</div>
+            <input class="inp" type="url" id="partner-website" placeholder="https://…">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Logo URL</div>
+            <input class="inp" type="url" id="partner-logo" placeholder="https://…">
+          </div>
+          <div class="field">
+            <div class="lbl">Statut</div>
+            <select class="sel" id="partner-status">
+              <option value="published">Publié</option>
+              <option value="draft">Brouillon</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl">Points forts (séparés par |)</div>
+          <input class="inp" type="text" id="partner-pros" placeholder="Gratuit · Interface simple · Intégrations">
+        </div>
+        <div class="field">
+          <div class="lbl">Inconvénients (séparés par |)</div>
+          <input class="inp" type="text" id="partner-cons" placeholder="Limites plan gratuit · Export payant">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('partner-modal')">Annuler</button>
+      <button class="btn p" onclick="savePartner()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-ov" id="modal-del-partner">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hd">
+      <div class="modal-ttl">Supprimer le partenaire</div>
+      <button class="modal-x" onclick="closeMod('modal-del-partner')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink2)">Supprimer définitivement <strong id="del-partner-name"></strong> ?</p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('modal-del-partner')">Annuler</button>
+      <button class="btn d" id="del-partner-confirm">🗑 Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+<script>
+let allPartners = [];
+let _delPartnerId = null;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadPartners();
+
+  document.getElementById('del-partner-confirm').addEventListener('click', async () => {
+    if (!_delPartnerId) return;
+    try {
+      await api('DELETE', `/api/partners/${_delPartnerId}`);
+      toast('Partenaire supprimé');
+      closeMod('modal-del-partner');
+      loadPartners();
+    } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+  });
+});
+
+// ── Chargement ────────────────────────────────────────────────
+async function loadPartners() {
+  const tbody = document.getElementById('partners-list');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr>';
+  try {
+    allPartners = await api('GET', '/api/partners');
+    renderPartners(allPartners);
+  } catch(e) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6"><div class="empty">❌ ${e.message}</div></td></tr>`;
+  }
+}
+
+// ── Rendu table ───────────────────────────────────────────────
+function renderPartners(partners) {
+  const tbody = document.getElementById('partners-list');
+  const count = document.getElementById('partner-count');
+  if (!tbody) return;
+  if (count) count.textContent = `${partners.length} partenaire${partners.length > 1 ? 's' : ''}`;
+
+  tbody.innerHTML = partners.length
+    ? partners.map(p => `
+        <tr>
+          <td class="td-main">
+            ${p.logo_url
+              ? `<img src="${escAttr(p.logo_url)}" height="18"
+                  style="margin-right:8px;vertical-align:middle;opacity:.85;border-radius:2px"
+                  onerror="this.remove()">`
+              : ''}
+            ${esc(p.name)}
+            ${p.description ? `<small>${esc(p.description.substring(0,60))}…</small>` : ''}
+          </td>
+          <td style="color:var(--ink3);font-size:12px">${esc(p.category||'—')}</td>
+          <td>
+            <span style="font-size:10px;background:rgba(0,0,0,.07);color:var(--ink2);padding:2px 8px;border-radius:4px;white-space:nowrap">
+              ${esc(p.badge||'Affilié')}
+            </span>
+          </td>
+          <td style="font-family:var(--mono);font-size:12px">
+            ${p.rating
+              ? `<span style="color:var(--yellow)">★</span> ${p.rating}/5`
+              : '<span style="color:var(--ink4)">—</span>'}
+          </td>
+          <td>
+            <span class="badge ${p.status==='published'?'b-pub':'b-dft'}">
+              ${p.status==='published'?'✅ Publié':'📝 Brouillon'}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px">
+              ${p.affiliate_url || p.website_url
+                ? `<a href="${esc(p.affiliate_url||p.website_url)}" target="_blank" class="btn g sm" title="Voir le site">↗</a>`
+                : ''}
+              <button class="btn g sm" onclick="editPartner(${p.id})">Éditer</button>
+              <button class="btn d sm" onclick="confirmDelPartner(${p.id},'${escAttr(p.name)}')">✕</button>
+            </div>
+          </td>
+        </tr>`).join('')
+    : '<tr><td colspan="6"><div class="empty">Aucun partenaire. Cliquez "+ Nouveau partenaire" pour commencer.</div></td></tr>';
+}
+
+// ── Filtre ────────────────────────────────────────────────────
+function filterPartners(q) {
+  const query  = (q ?? document.getElementById('partner-srch')?.value ?? '').toLowerCase();
+  const status = document.getElementById('partner-status-f')?.value || '';
+  let filtered = allPartners;
+  if (query)  filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(query) ||
+    p.category?.toLowerCase().includes(query) ||
+    p.description?.toLowerCase().includes(query)
+  );
+  if (status) filtered = filtered.filter(p => p.status === status);
+  renderPartners(filtered);
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function openPartnerModal(partner = null) {
+  document.getElementById('partner-modal-title').textContent = partner ? 'Modifier' : 'Nouveau partenaire';
+  document.getElementById('partner-id').value         = partner?.id          || '';
+  document.getElementById('partner-name').value       = partner?.name        || '';
+  document.getElementById('partner-cat').value        = partner?.category    || '';
+  document.getElementById('partner-rating').value     = partner?.rating      || '';
+  document.getElementById('partner-desc').value       = partner?.description || '';
+  document.getElementById('partner-affiliate').value  = partner?.affiliate_url || '';
+  document.getElementById('partner-website').value    = partner?.website_url   || '';
+  document.getElementById('partner-logo').value       = partner?.logo_url      || '';
+  document.getElementById('partner-badge').value      = partner?.badge    || 'Affilié';
+  document.getElementById('partner-status').value     = partner?.status   || 'published';
+  document.getElementById('partner-pros').value       = partner?.pros?.join('|') || '';
+  document.getElementById('partner-cons').value       = partner?.cons?.join('|') || '';
+  closeAllModals();
+  document.getElementById('partner-modal').classList.add('open');
+  setTimeout(() => document.getElementById('partner-name').focus(), 100);
+}
+
+function editPartner(id) {
+  const p = allPartners.find(p => p.id === id);
+  if (p) openPartnerModal(p);
+}
+
+async function savePartner() {
+  const id   = document.getElementById('partner-id').value;
+  const name = document.getElementById('partner-name').value.trim();
+  if (!name) return toast('Le nom est obligatoire', 'e');
+  const body = {
+    name,
+    category:      document.getElementById('partner-cat').value,
+    badge:         document.getElementById('partner-badge').value,
+    rating:        parseFloat(document.getElementById('partner-rating').value) || null,
+    description:   document.getElementById('partner-desc').value,
+    affiliate_url: document.getElementById('partner-affiliate').value,
+    website_url:   document.getElementById('partner-website').value,
+    logo_url:      document.getElementById('partner-logo').value,
+    status:        document.getElementById('partner-status').value,
+    pros:          document.getElementById('partner-pros').value.split('|').map(s=>s.trim()).filter(Boolean),
+    cons:          document.getElementById('partner-cons').value.split('|').map(s=>s.trim()).filter(Boolean)
+  };
+  try {
+    id ? await api('PUT', `/api/partners/${id}`, body) : await api('POST', '/api/partners', body);
+    toast(id ? '✅ Partenaire mis à jour' : '✅ Partenaire ajouté');
+    closeMod('partner-modal');
+    loadPartners();
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+// ── Suppression ───────────────────────────────────────────────
+function confirmDelPartner(id, name) {
+  _delPartnerId = id;
+  document.getElementById('del-partner-name').textContent = name;
+  closeAllModals();
+  document.getElementById('modal-del-partner').classList.add('open');
+}
+</script>
+</body>
+</html>
