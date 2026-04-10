@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Ticker live'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Ticker live'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Ticker <span>live</span></div>
+        <div class="sec-sub">Bandeau défilant · VU Magazine · 8 items max</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn g sm" onclick="addTickerItem()">+ Ajouter</button>
+        <button class="btn p sm" onclick="saveTicker()">💾 Sauvegarder</button>
+      </div>
+    </div>
+
+    <!-- Preview ticker -->
+    <div style="background:#0D0D0D;border-radius:var(--r);padding:10px 16px;margin-bottom:16px;overflow:hidden;position:relative">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:6px">APERÇU — VU Magazine</div>
+      <div style="display:flex;gap:24px;overflow:hidden;white-space:nowrap" id="ticker-preview">
+        <span style="color:rgba(255,255,255,.4);font-size:12px;font-style:italic">Chargement…</span>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div id="ticker-items" class="vgap" style="gap:6px">
+      <div class="loading"><div class="spin"></div></div>
+    </div>
+
+    <!-- Info -->
+    <div style="margin-top:12px;font-size:12px;color:var(--ink3);padding:10px 14px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);line-height:1.6">
+      ℹ️ Les modifications sont sauvegardées en base de données et reflétées en temps réel sur VU Magazine. Maximum 8 items actifs.
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+const PLATFORM_COLORS = {
+  'Instagram':'#E1306C','TikTok':'#aaa','Facebook':'#1877F2',
+  'LinkedIn':'#0A66C2','YouTube':'#FF0000','X':'#888',
+  'Snapchat':'#FFFC00','Pinterest':'#E60023','Reddit':'#FF4500'
+};
+const PLATFORMS = ['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'];
+
+let ticker = [];
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadTicker);
+
+async function loadTicker() {
+  const container = document.getElementById('ticker-items');
+  if (container) container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const items = await api('GET', '/api/ticker');
+    if (Array.isArray(items) && items.length) {
+      ticker = items.map(i => ({
+        id:         i.id,
+        cat:        i.category,
+        color:      i.color,
+        title:      i.title,
+        is_active:  i.is_active,
+        sort_order: i.sort_order
+      }));
+    }
+  } catch(e) {
+    console.warn('Ticker API:', e.message);
+  }
+  renderTicker();
+}
+
+// ── Rendu liste ───────────────────────────────────────────────
+function renderTicker() {
+  const container = document.getElementById('ticker-items');
+  if (!container) return;
+
+  if (!ticker.length) {
+    container.innerHTML = '<div class="empty" style="padding:24px">Aucun item. Cliquez "+ Ajouter" pour commencer.</div>';
+    updatePreview();
+    return;
+  }
+
+  container.innerHTML = ticker.map((item, i) => `
+    <div class="tick-row" data-index="${i}">
+      <!-- Couleur -->
+      <div style="width:10px;height:10px;border-radius:50%;background:${item.color||'#888'};flex-shrink:0"></div>
+
+      <!-- Catégorie -->
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);padding:4px 8px;font-size:12px;cursor:pointer;flex-shrink:0"
+        onchange="updateTickerCat(${i},this.value)">
+        ${PLATFORMS.map(p => `<option value="${p}" ${item.cat===p?'selected':''}>${p}</option>`).join('')}
+        <option value="Autre" ${!PLATFORMS.includes(item.cat)?'selected':''}>Autre…</option>
+      </select>
+
+      <!-- Titre -->
+      <input type="text" value="${(item.title||'').replace(/"/g,'&quot;')}"
+        style="flex:1;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--ink);font-size:13px;padding:4px 6px;transition:border-color .15s"
+        onfocus="this.style.borderBottomColor='var(--border2)'"
+        onblur="this.style.borderBottomColor='transparent'"
+        onchange="updateTickerTitle(${i},this.value)"
+        oninput="updateTickerTitle(${i},this.value)"
+        placeholder="Titre de l'actu…">
+
+      <!-- Statut -->
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink2);padding:4px 6px;font-size:11px;cursor:pointer;flex-shrink:0"
+        onchange="updateTickerActive(${i},this.value==='1')">
+        <option value="1" ${item.is_active!==false?'selected':''}>✅ Actif</option>
+        <option value="0" ${item.is_active===false?'selected':''}>⏸ Inactif</option>
+      </select>
+
+      <!-- Supprimer -->
+      <button class="tick-del" onclick="removeTicker(${i})" title="Supprimer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>`).join('');
+
+  updatePreview();
+}
+
+// ── Preview ticker ────────────────────────────────────────────
+function updatePreview() {
+  const prev = document.getElementById('ticker-preview');
+  if (!prev) return;
+  const active = ticker.filter(t => t.is_active !== false && t.title?.trim());
+  if (!active.length) {
+    prev.innerHTML = '<span style="color:rgba(255,255,255,.3);font-size:12px;font-style:italic">Aucun item actif</span>';
+    return;
+  }
+  prev.innerHTML = active.map(t =>
+    `<span style="font-size:12px;white-space:nowrap;color:rgba(255,255,255,.85)">` +
+    `<strong style="color:${t.color||'#fff'};margin-right:4px">${esc(t.cat)}</strong>` +
+    `${esc(t.title)}` +
+    `</span>`
+  ).join('<span style="color:rgba(255,255,255,.2);margin:0 12px">·</span>');
+}
+
+// ── Mutations ─────────────────────────────────────────────────
+function updateTickerCat(i, cat) {
+  ticker[i].cat   = cat;
+  ticker[i].color = PLATFORM_COLORS[cat] || '#888';
+  renderTicker();
+}
+function updateTickerTitle(i, title)   { ticker[i].title = title; updatePreview(); }
+function updateTickerActive(i, active) { ticker[i].is_active = active; updatePreview(); }
+
+async function addTickerItem() {
+  if (ticker.length >= 8) return toast('Maximum 8 items', 'i');
+  const newItem = { cat:'Instagram', color:'#E1306C', title:'', is_active:true, sort_order:ticker.length };
+  try {
+    const saved = await api('POST', '/api/ticker', {
+      category:   newItem.cat,
+      color:      newItem.color,
+      title:      newItem.title,
+      is_active:  true,
+      sort_order: newItem.sort_order
+    });
+    ticker.push({ id: saved.id, ...newItem });
+  } catch {
+    ticker.push(newItem);
+  }
+  renderTicker();
+  // Focus sur le nouveau champ titre
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.tick-row input[type="text"]');
+    inputs[inputs.length - 1]?.focus();
+  }, 50);
+}
+
+async function removeTicker(i) {
+  const item = ticker[i];
+  if (item?.id) {
+    try { await api('DELETE', `/api/ticker/${item.id}`); } catch {}
+  }
+  ticker.splice(i, 1);
+  renderTicker();
+  toast('Item supprimé');
+}
+
+async function saveTicker() {
+  if (!ticker.length) return toast('Aucun item à sauvegarder', 'i');
+  toast('💾 Sauvegarde en cours…', 'i');
+  let saved = 0, errors = 0;
+  for (let i = 0; i < ticker.length; i++) {
+    const item = ticker[i];
+    const body = {
+      category:   item.cat,
+      color:      item.color || PLATFORM_COLORS[item.cat] || '#888',
+      title:      item.title,
+      is_active:  item.is_active !== false,
+      sort_order: i
+    };
+    try {
+      if (item.id) {
+        await api('PUT', `/api/ticker/${item.id}`, body);
+      } else {
+        const r = await api('POST', '/api/ticker', body);
+        ticker[i].id = r.id;
+      }
+      saved++;
+    } catch { errors++; }
+  }
+  if (errors) toast(`${saved} sauvegardés, ${errors} erreur(s)`, 'e');
+  else toast(`✅ Ticker sauvegardé (${saved} items) — VU Magazine mis à jour !`);
+}
+
+// Raccourci ⌘S
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='s') { e.preventDefault(); saveTicker(); }
+});
+</script>
+</body>
+</html>
