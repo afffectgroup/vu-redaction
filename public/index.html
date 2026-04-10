@@ -856,19 +856,113 @@ Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button cla
     </div>
 
     <!-- TICKER -->
-    <div class="page" id="pg-ticker">
-      <div class="sec-hd">
-        <div><div class="sec-ttl">Ticker <span>live</span></div><div class="sec-sub">Bandeau défilant affiché sur VU Magazine · 8 items max</div></div>
-        <div style="display:flex;gap:6px">
-          <button class="btn g" onclick="addTickerItem()">+ Ajouter</button>
-          <button class="btn p" onclick="saveTicker()">💾 Copier code</button>
-        </div>
-      </div>
-      <div id="ticker-items" class="vgap" style="gap:6px"></div>
-      <div class="code-hint" style="margin-top:16px">
-        ℹ️ Cliquez "Copier code" puis collez dans <code>server.js</code> → <code>res.locals.ticker</code>
-      </div>
+
+const PLATFORM_COLORS = {
+  'TikTok': '#aaa', 'Instagram': '#E1306C', 'Facebook': '#1877F2',
+  'LinkedIn': '#0A66C2', 'YouTube': '#FF0000', 'X': '#888',
+  'Snapchat': '#FFFC00', 'Pinterest': '#E60023', 'Reddit': '#FF4500',
+};
+
+// Charge le ticker depuis la DB au lieu du state local
+async function loadTickerFromAPI() {
+  try {
+    const items = await api('GET', '/api/ticker');
+    if (items && items.length) {
+      S.ticker = items.map(i => ({ id: i.id, cat: i.category, color: i.color, title: i.title, is_active: i.is_active, sort_order: i.sort_order }));
+    }
+  } catch(e) {
+    console.warn('Ticker API unavailable, using local state', e.message);
+  }
+  renderTicker();
+}
+
+function renderTicker() {
+  const container = document.getElementById('ticker-items');
+  if (!container) return;
+  if (!S.ticker.length) {
+    container.innerHTML = '<div class="empty" style="padding:24px">Aucun item. Cliquez "+ Ajouter" pour commencer.</div>';
+    return;
+  }
+  container.innerHTML = S.ticker.map((item, i) => `
+    <div class="tick-row" draggable="true">
+      <div style="width:10px;height:10px;border-radius:50%;background:${item.color||'#fff'};flex-shrink:0"></div>
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);padding:4px 8px;font-size:12px;cursor:pointer"
+        onchange="updateTickerCat(${i},this.value)">
+        ${['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].map(p =>
+          `<option value="${p}" ${item.cat===p?'selected':''}>${p}</option>`
+        ).join('')}
+        <option value="autre" ${!['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].includes(item.cat)?'selected':''}>Autre…</option>
+      </select>
+      <input type="text" value="${(item.title||'').replace(/"/g,'&quot;')}"
+        style="flex:1;background:transparent;border:none;color:var(--ink);font-size:13px;padding:4px"
+        onchange="updateTickerTitle(${i},this.value)" placeholder="Titre de l'actu…">
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink2);padding:4px 6px;font-size:11px;cursor:pointer"
+        onchange="updateTickerActive(${i},this.value==='1')">
+        <option value="1" ${item.is_active!==false?'selected':''}>Actif</option>
+        <option value="0" ${item.is_active===false?'selected':''}>Inactif</option>
+      </select>
+      <button class="tick-del" onclick="removeTicker(${i})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
+  `).join('');
+}
+
+function updateTickerCat(i, cat) {
+  S.ticker[i].cat = cat;
+  S.ticker[i].color = PLATFORM_COLORS[cat] || '#888';
+  renderTicker();
+}
+
+function updateTickerTitle(i, title) {
+  S.ticker[i].title = title;
+}
+
+function updateTickerActive(i, active) {
+  S.ticker[i].is_active = active;
+}
+
+async function addTickerItem() {
+  if (S.ticker.length >= 8) return toast('Maximum 8 items', 'i');
+  const newItem = { cat: 'Instagram', color: '#E1306C', title: '', is_active: true, sort_order: S.ticker.length };
+  try {
+    const saved = await api('POST', '/api/ticker', { category: newItem.cat, color: newItem.color, title: newItem.title, is_active: true, sort_order: newItem.sort_order });
+    S.ticker.push({ id: saved.id, ...newItem });
+  } catch {
+    S.ticker.push(newItem);
+  }
+  renderTicker();
+}
+
+async function removeTicker(i) {
+  const item = S.ticker[i];
+  if (item && item.id) {
+    try { await api('DELETE', `/api/ticker/${item.id}`); } catch {}
+  }
+  S.ticker.splice(i, 1);
+  renderTicker();
+  toast('Item supprimé');
+}
+
+async function saveTicker() {
+  toast('💾 Sauvegarde en cours…', 'i');
+  let saved = 0, errors = 0;
+  for (let i = 0; i < S.ticker.length; i++) {
+    const item = S.ticker[i];
+    const body = { category: item.cat, color: item.color || PLATFORM_COLORS[item.cat] || '#888', title: item.title, is_active: item.is_active !== false, sort_order: i };
+    try {
+      if (item.id) {
+        await api('PUT', `/api/ticker/${item.id}`, body);
+      } else {
+        const r = await api('POST', '/api/ticker', body);
+        S.ticker[i].id = r.id;
+      }
+      saved++;
+    } catch { errors++; }
+  }
+  if (errors) toast(`${saved} sauvegardés, ${errors} erreurs`, 'e');
+  else toast(`✅ Ticker sauvegardé (${saved} items) — VU Magazine mis à jour en temps réel !`);
+}
 
     <!-- AGENTS -->
     <div class="page" id="pg-agents">
