@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Articles'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Articles'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Articles <span id="badge-arts-count" style="font-size:14px;font-weight:400;color:var(--ink3)"></span></div>
+      </div>
+      <a href="/new-article" class="btn p sm">+ Nouvel article</a>
+    </div>
+
+    <div class="tbl-wrap">
+      <!-- Barre filtres -->
+      <div class="tbl-tb">
+        <div class="srch">
+          <span class="srch-ico">🔍</span>
+          <input class="srch-inp" type="text" id="art-srch"
+            placeholder="Rechercher titre, slug, catégorie…"
+            oninput="debounceSearch()">
+        </div>
+        <select class="flt-sel" id="art-st-f" onchange="loadArts()">
+          <option value="">Tous statuts</option>
+          <option value="published">✅ Publiés</option>
+          <option value="draft">📝 Brouillons</option>
+          <option value="scheduled">⏰ Programmés</option>
+        </select>
+        <select class="flt-sel sel-cats" id="art-cat-f" onchange="loadArts()">
+          <option value="">Toutes catégories</option>
+        </select>
+        <button class="btn g sm" onclick="resetFilters()">↺ Reset</button>
+      </div>
+
+      <!-- Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Statut</th>
+            <th>Catégorie</th>
+            <th>Vues</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="arts-list">
+          <tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div id="arts-pagination" style="display:none;padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="font-size:12px;color:var(--ink3)" id="arts-count-info"></div>
+        <div style="display:flex;gap:4px" id="arts-pages"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<!-- Modal confirmation suppression -->
+<div class="modal-ov" id="modal-del-art">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd">
+      <div class="modal-ttl">Archiver l'article</div>
+      <button class="modal-x" onclick="closeMod('modal-del-art')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:10px">Cet article sera archivé (non supprimé). Il ne sera plus visible sur VU Magazine.</p>
+      <div style="font-weight:500;font-size:13px" id="del-art-title"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('modal-del-art')">Annuler</button>
+      <button class="btn d" id="del-art-confirm">🗑 Archiver</button>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+<script>
+let _searchTimer = null;
+let _currentPage = 1;
+const PER_PAGE = 24;
+
+function debounceSearch() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(loadArts, 300);
+}
+
+function resetFilters() {
+  document.getElementById('art-srch').value = '';
+  document.getElementById('art-st-f').value = '';
+  document.getElementById('art-cat-f').value = '';
+  _currentPage = 1;
+  loadArts();
+}
+
+async function loadArts(page = _currentPage) {
+  _currentPage = page;
+  const search = document.getElementById('art-srch')?.value || '';
+  const status = document.getElementById('art-st-f')?.value || '';
+  const cat    = document.getElementById('art-cat-f')?.value || '';
+
+  document.getElementById('arts-list').innerHTML =
+    '<tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr>';
+
+  const qs = new URLSearchParams({ limit: PER_PAGE, offset: (page - 1) * PER_PAGE });
+  if (search) qs.set('search', search);
+  if (status) qs.set('status', status);
+  if (cat)    qs.set('category', cat);
+
+  try {
+    const d = await api('GET', `/api/articles?${qs}`);
+    const total = d.total || 0;
+
+    // Badge count
+    const bc = document.getElementById('badge-arts-count');
+    if (bc) bc.textContent = `— ${total.toLocaleString('fr')} articles`;
+
+    // Sidebar badge
+    const sb = document.getElementById('badge-arts');
+    if (sb) sb.textContent = total;
+
+    // Table rows
+    document.getElementById('arts-list').innerHTML = d.articles.length
+      ? d.articles.map(a => `
+        <tr>
+          <td class="td-main">
+            ${esc(a.title)}
+            <small>${a.slug}</small>
+          </td>
+          <td>
+            <span class="badge ${a.status==='published'?'b-pub':a.status==='scheduled'?'b-sch':'b-dft'}">
+              ${a.status==='published'?'✅ Publié':a.status==='scheduled'?'⏰ Programmé':'📝 Brouillon'}
+            </span>
+          </td>
+          <td style="font-size:12px">
+            <span style="color:${a.category_color||'#888'}">●</span>
+            ${esc(a.category_name||'—')}
+          </td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--ink3)">
+            ${parseInt(a.view_count||0).toLocaleString('fr')}
+          </td>
+          <td style="font-size:12px;color:var(--ink3)">${fmtFr(a.published_at)}</td>
+          <td>
+            <div class="row-acts">
+              <a href="/new-article?id=${a.id}" class="btn g sm">✏ Éditer</a>
+              <button class="btn g sm" onclick="dupArt(${a.id})" title="Dupliquer">⧉</button>
+              <a href="https://vu-magazine.com/blog/${a.slug}" target="_blank" class="btn g sm" title="Voir sur le site">↗</a>
+              <button class="btn d sm" onclick="confirmDel(${a.id},'${escAttr(a.title)}')" title="Archiver">🗑</button>
+            </div>
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="6"><div class="empty">Aucun article trouvé</div></td></tr>';
+
+    // Pagination
+    renderPagination(total, page);
+
+  } catch(e) {
+    document.getElementById('arts-list').innerHTML =
+      `<tr><td colspan="6"><div class="empty">❌ ${e.message}</div></td></tr>`;
+  }
+}
+
+function renderPagination(total, current) {
+  const totalPages = Math.ceil(total / PER_PAGE);
+  const pg = document.getElementById('arts-pagination');
+  const info = document.getElementById('arts-count-info');
+  const pages = document.getElementById('arts-pages');
+
+  if (!pg) return;
+  pg.style.display = totalPages > 1 ? 'flex' : 'none';
+
+  const from = ((current - 1) * PER_PAGE) + 1;
+  const to   = Math.min(current * PER_PAGE, total);
+  if (info) info.textContent = `${from}–${to} sur ${total.toLocaleString('fr')} articles`;
+
+  if (!pages) return;
+  let html = '';
+  // Précédent
+  html += `<button class="btn g sm" ${current===1?'disabled':''} onclick="loadArts(${current-1})">‹</button>`;
+  // Pages
+  const range = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - current) <= 2) range.push(i);
+    else if (range[range.length-1] !== '…') range.push('…');
+  }
+  range.forEach(p => {
+    if (p === '…') html += `<span style="padding:5px 4px;color:var(--ink3);font-size:12px">…</span>`;
+    else html += `<button class="btn ${p===current?'p':'g'} sm" onclick="loadArts(${p})">${p}</button>`;
+  });
+  // Suivant
+  html += `<button class="btn g sm" ${current===totalPages?'disabled':''} onclick="loadArts(${current+1})">›</button>`;
+  pages.innerHTML = html;
+}
+
+async function dupArt(id) {
+  try {
+    const a = await api('GET', `/api/articles/${id}`);
+    const b = {...a, title:'[COPIE] '+a.title, slug:a.slug+'-copie', status:'draft'};
+    delete b.id;
+    await api('POST', '/api/articles', b);
+    toast('Article dupliqué ✅');
+    loadArts();
+  } catch(e) { toast('Erreur : '+e.message, 'e'); }
+}
+
+let _delId = null;
+function confirmDel(id, title) {
+  _delId = id;
+  const t = document.getElementById('del-art-title');
+  if (t) t.textContent = title;
+  document.getElementById('modal-del-art').classList.add('open');
+}
+document.getElementById('del-art-confirm').addEventListener('click', async () => {
+  if (!_delId) return;
+  try {
+    await api('DELETE', `/api/articles/${_delId}`);
+    toast('Article archivé');
+    closeMod('modal-del-art');
+    loadArts();
+  } catch(e) { toast('Erreur : '+e.message, 'e'); }
+});
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadMeta();
+  loadArts();
+});
+</script>
+</body>
+</html>
