@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Nouvel article'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Nouvel article'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl" id="ed-page-ttl">Nouvel <span>article</span></div>
+        <div class="sec-sub">Rédigez · Optimisez · Publiez</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn g sm" onclick="saveArt('draft')">💾 Brouillon</button>
+        <button class="btn g sm" onclick="openSchedule()">⏰ Planifier</button>
+        <button class="btn p" onclick="saveArt('published')">✅ Publier</button>
+      </div>
+    </div>
+
+    <!-- Import URL -->
+    <div class="url-box">
+      <div class="import-label">⚡ Import depuis URL ou texte</div>
+      <div class="url-row">
+        <input class="inp url-inp" type="url" id="import-url" placeholder="https://socialmediatoday.com/article/…">
+        <button class="btn p sm" onclick="importUrl()">Importer + Adapter</button>
+        <button class="btn g sm" onclick="togglePaste()">Coller texte</button>
+      </div>
+      <div id="paste-area" style="display:none;margin-top:10px">
+        <textarea class="ta" id="paste-txt" placeholder="Collez votre texte brut…" style="min-height:90px"></textarea>
+        <button class="btn b sm" style="margin-top:6px" onclick="adaptPaste()">✨ Adapter en Brand Voice VU Magazine</button>
+      </div>
+    </div>
+
+    <!-- Shell éditeur -->
+    <div class="ed-shell">
+
+      <!-- Colonne gauche : éditeur -->
+      <div class="vgap">
+
+        <!-- Titre + slug -->
+        <div class="card" style="padding:14px">
+          <input class="inp" type="text" id="art-title" placeholder="Titre de l'article…" oninput="onTitle(this.value)" style="font-size:16px;font-weight:500">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <div class="slug-pill" id="slug-prev">vu-magazine.com/blog/</div>
+            <button class="btn g sm" onclick="regenSlug()">↺ Régénérer</button>
+          </div>
+          <input type="hidden" id="art-slug">
+          <input type="hidden" id="art-id">
+        </div>
+
+        <!-- Éditeur rich-text -->
+        <div class="ed-box">
+          <div class="ed-tb">
+            <button class="et" onclick="fmt('bold')"><strong>B</strong></button>
+            <button class="et" onclick="fmt('italic')"><em>I</em></button>
+            <div class="et-sep"></div>
+            <button class="et" onclick="fmtB('h2')">H2</button>
+            <button class="et" onclick="fmtB('h3')">H3</button>
+            <div class="et-sep"></div>
+            <button class="et" onclick="fmt('insertUnorderedList')">• —</button>
+            <button class="et" onclick="fmt('insertOrderedList')">1.</button>
+            <button class="et" onclick="fmtB('blockquote')">"</button>
+            <div class="et-sep"></div>
+            <button class="et" onclick="insLink()">🔗</button>
+            <button class="et" onclick="openMediaPicker('editor')">🖼</button>
+            <button class="et" onclick="insVideo()">▶</button>
+            <div class="et-sep"></div>
+            <button class="et on" id="md-v" onclick="setMode('v')" style="font-size:10px">Visuel</button>
+            <button class="et" id="md-h" onclick="setMode('h')" style="font-size:10px">HTML</button>
+            <div style="margin-left:auto">
+              <button class="btn g sm" onclick="showAiFloat(event)" style="font-size:11px">
+                <span style="color:var(--accent)">✦</span> IA inline
+              </button>
+            </div>
+          </div>
+          <div class="ed-area" id="art-ed" contenteditable="true"
+            placeholder="Rédigez ici, ou importez depuis une URL…"
+            oninput="onEdChange()"></div>
+          <textarea class="ed-raw" id="art-raw" oninput="updateWC()"></textarea>
+          <div class="ed-ft">
+            <div class="wc" id="wc">0 mots</div>
+            <div id="rt" style="font-size:11px;color:var(--ink3);margin-left:8px"></div>
+            <div class="voice-bar" style="margin-left:auto;border-top:none;padding:0;background:none">
+              <div class="vdot"></div><span>Brand Voice · Stéphanie Jouin</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extrait -->
+        <div class="card" style="padding:14px">
+          <div class="card-t">✍️ Extrait <button class="btn g sm" onclick="genExcerpt()">✨ Générer</button></div>
+          <textarea class="ta" id="art-exc" placeholder="Résumé de l'article (160 car. max)…" style="min-height:60px" oninput="updateSEO()"></textarea>
+          <div class="char-count" id="exc-c">0/160</div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card" style="padding:14px">
+          <div class="card-t">
+            ❓ FAQ Schema.org (GEO)
+            <div style="display:flex;gap:5px">
+              <button class="btn g sm" onclick="genFAQ()">✨ Générer</button>
+              <button class="btn g sm" onclick="addFAQ()">+ Q&amp;R</button>
+            </div>
+          </div>
+          <div id="faq-list"></div>
+          <div id="faq-empty" class="hint-italic">Ajoutez 3-5 Q&R pour optimiser le GEO</div>
+        </div>
+
+        <!-- Agents rapides -->
+        <div class="g2">
+          <div class="card" style="padding:14px">
+            <div class="card-t" style="color:var(--purple)">🧑‍🔬 Agent E-E-A-T</div>
+            <button class="btn pur sm" style="width:100%" onclick="quickAgent('eeat')">▶ Analyser E-E-A-T</button>
+            <div class="ai-res" id="qa-eeat"></div>
+          </div>
+          <div class="card" style="padding:14px">
+            <div class="card-t" style="color:var(--blue)">🔗 Agent Maillage</div>
+            <button class="btn b sm" style="width:100%" onclick="quickAgent('links')">▶ Suggérer le maillage</button>
+            <div class="ai-res" id="qa-links"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne droite : publication + SEO + IA -->
+      <div class="vgap">
+
+        <!-- Publication -->
+        <div class="card">
+          <div class="card-t">🚀 Publication</div>
+          <div class="vgap">
+            <div class="field">
+              <div class="lbl">Statut</div>
+              <select class="sel" id="art-status" onchange="onStatusChange(this.value)">
+                <option value="draft">📝 Brouillon</option>
+                <option value="published">✅ Publié</option>
+                <option value="scheduled">⏰ Programmé</option>
+              </select>
+            </div>
+            <div class="field" id="sched-wrap" style="display:none">
+              <div class="lbl">Date de publication</div>
+              <input class="inp" type="datetime-local" id="art-sched-dt">
+            </div>
+            <div class="field">
+              <div class="lbl">Catégorie</div>
+              <select class="sel sel-cats" id="art-cat"></select>
+            </div>
+            <div class="field">
+              <div class="lbl">Auteur</div>
+              <select class="sel sel-auths" id="art-auth"></select>
+            </div>
+            <div class="field">
+              <div class="lbl">Temps de lecture (min)</div>
+              <input class="inp" type="number" id="art-rt" value="5" min="1">
+            </div>
+          </div>
+          <div class="sep-top-sm">
+            <button class="btn d sm" id="del-btn" style="display:none;width:100%" onclick="delArt()">🗑 Archiver l'article</button>
+          </div>
+        </div>
+
+        <!-- Image principale -->
+        <div class="card">
+          <div class="card-t">
+            🖼 Image principale
+            <button class="btn g sm" onclick="openMediaPicker('cover')">Choisir</button>
+          </div>
+          <div class="cov-prev" id="cov-prev" onclick="openMediaPicker('cover')">Cliquez pour choisir une image</div>
+          <input type="hidden" id="art-cover">
+          <div class="field" style="margin-top:8px">
+            <div class="lbl">Texte ALT</div>
+            <input class="inp" type="text" id="art-alt" placeholder="Description SEO…">
+            <button class="btn g sm" style="margin-top:5px;width:100%" onclick="genAlt()">✨ Générer ALT auto</button>
+          </div>
+        </div>
+
+        <!-- SEO Meta -->
+        <div class="card">
+          <div class="card-t">🔍 SEO Meta</div>
+          <div class="vgap">
+            <div class="field">
+              <div class="lbl">Titre SEO <span id="mt-c" style="font-family:var(--mono)">0/60</span></div>
+              <input class="inp" type="text" id="art-mt" oninput="updateSEO()">
+            </div>
+            <div class="field">
+              <div class="lbl">Description <span id="md-c" style="font-family:var(--mono)">0/160</span></div>
+              <textarea class="ta" id="art-md" style="min-height:60px" oninput="updateSEO()"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score SEO -->
+        <div class="card">
+          <div class="card-t">📊 Score SEO/GEO</div>
+          <div id="seo-checks" class="vgap" style="gap:5px"></div>
+          <div class="sep-top">
+            <div class="row-between-sm">
+              <span style="font-size:11px;color:var(--ink3)">Score</span>
+              <span style="font-size:12px;font-weight:600;font-family:var(--mono)" id="seo-val">0/7</span>
+            </div>
+            <div class="seo-bar"><div class="seo-fill" id="seo-fill" style="width:0;background:var(--accent)"></div></div>
+          </div>
+          <div class="sep-top">
+            <a href="/agents" class="btn g sm" style="width:100%">↗ Tous les agents (15)</a>
+          </div>
+        </div>
+
+        <!-- Assistant IA -->
+        <div class="ai-panel">
+          <div class="ai-hd">
+            <div class="ai-badge">IA</div>
+            <div style="font-size:13px;font-weight:600">Assistant IA</div>
+          </div>
+          <div class="ai-gbtns">
+            <button class="ai-gbtn" onclick="aiGen('article')"><div class="ai-ico" style="background:rgba(0,0,0,.08)">📄</div> Article complet</button>
+            <button class="ai-gbtn" onclick="aiGen('paragraph')"><div class="ai-ico" style="background:rgba(56,139,253,.15)">¶</div> Paragraphe</button>
+            <button class="ai-gbtn" onclick="aiGen('title')"><div class="ai-ico" style="background:rgba(63,185,80,.15)">T</div> Titres SEO</button>
+            <button class="ai-gbtn" onclick="aiGen('intro')"><div class="ai-ico" style="background:rgba(188,140,255,.15)">↗</div> Réécrire l'intro</button>
+            <button class="ai-gbtn" onclick="aiGen('conclusion')"><div class="ai-ico" style="background:rgba(210,153,34,.15)">↙</div> Conclusion</button>
+          </div>
+          <div class="ai-res" id="ai-ed-res"></div>
+          <div class="voice-bar"><div class="vdot"></div><span style="font-size:11px">Ton adapté · Stéphanie Jouin</span></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<!-- Modal planifier -->
+<div class="modal-ov" id="modal-sched">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hd">
+      <div class="modal-ttl">⏰ Planifier</div>
+      <button class="modal-x" onclick="closeMod('modal-sched')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="lbl">Date et heure de publication</div>
+        <input class="inp" type="datetime-local" id="sched-modal-dt">
+      </div>
+      <div class="hint-box">L'article sera publié automatiquement à la date indiquée.</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('modal-sched')">Annuler</button>
+      <button class="btn p" onclick="confirmSched()">⏰ Planifier</button>
+    </div>
+  </div>
+</div>
+
+<!-- IA Float -->
+<div class="ai-float" id="ai-float">
+  <div class="section-accent-label">✦ Assistant IA inline</div>
+  <input class="ai-fl-inp" type="text" id="ai-fl-inp"
+    placeholder="Décris ce que tu veux générer…"
+    onkeydown="if(event.key==='Enter')runFloat()">
+  <div class="ai-fl-btns">
+    <button class="btn p sm" onclick="runFloat()">✦ Générer</button>
+    <button class="btn g sm" onclick="floatQuick('reformule en expert Social Media France')">Reformuler</button>
+    <button class="btn g sm" onclick="floatQuick('rends ce texte plus percutant avec des données chiffrées')">Percutant</button>
+    <button class="btn g sm" onclick="closeFloat()">✕</button>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+<script>
+// ── État local ────────────────────────────────────────────────
+let edMode = 'v';
+let faq    = [];
+let currentId = null;
+let mCtx   = 'cover';
+let mSel   = null;
+let floatOpen = false;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadMeta();
+  setMode('v');
+  updateSEO();
+  updateWC();
+
+  // Pré-charger via URL ?id=xxx
+  const params = new URLSearchParams(window.location.search);
+  const preId  = params.get('id');
+  if (preId) {
+    await initEd(preId);
+    document.getElementById('ed-page-ttl').innerHTML = 'Modifier <span>l\'article</span>';
+  }
+
+  // Inspiration depuis la veille ?inspiration=xxx
+  const inspo = params.get('inspiration');
+  if (inspo) {
+    document.getElementById('art-title').value = decodeURIComponent(inspo);
+    onTitle(decodeURIComponent(inspo));
+  }
+
+  // Raccourci clavier ⌘S
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey||e.ctrlKey) && e.key === 's') { e.preventDefault(); saveArt('draft'); }
+    if (e.key === 'Escape') closeFloat();
+  });
+  // Fermer float au clic extérieur
+  document.addEventListener('click', e => {
+    if (floatOpen && !document.getElementById('ai-float').contains(e.target)
+        && !e.target.closest('[onclick*="showAiFloat"]')) closeFloat();
+  });
+});
+
+// ── Chargement article existant ───────────────────────────────
+async function initEd(id) {
+  currentId = id;
+  const a = await api('GET', `/api/articles/${id}`);
+  const setVal = (elId, v) => { const e=document.getElementById(elId); if(e) e.value=v||''; };
+  setVal('art-id', a.id);   setVal('art-title', a.title); setVal('art-slug', a.slug);
+  setVal('art-exc', a.excerpt); setVal('art-status', a.status||'draft');
+  setVal('art-mt', a.meta_title); setVal('art-md', a.meta_description);
+  setVal('art-cover', a.cover_image_url); setVal('art-rt', a.read_time_min||5);
+  txt('slug-prev', `vu-magazine.com/blog/${a.slug||''}`);
+  const ed = document.getElementById('art-ed'); if (ed) ed.innerHTML = a.content||'';
+  if (a.category_id) { const ce=document.getElementById('art-cat'); if(ce) ce.value=a.category_id; }
+  if (a.author_id)   { const ae=document.getElementById('art-auth'); if(ae) ae.value=a.author_id; }
+  if (a.cover_image_url) setCoverPrev(a.cover_image_url);
+  if (a.faq) try { faq = typeof a.faq==='string'?JSON.parse(a.faq):a.faq||[]; } catch{}
+  onStatusChange(a.status||'draft');
+  const db = document.getElementById('del-btn'); if(db) db.style.display='';
+  renderFAQ(); setMode('v'); updateSEO(); updateWC();
+}
+
+// ── Titre → slug auto ─────────────────────────────────────────
+async function onTitle(v) {
+  updateSEO();
+  if (!currentId && v.length > 3) {
+    try {
+      const {slug} = await api('POST', '/api/slug', {title:v});
+      document.getElementById('art-slug').value = slug;
+      txt('slug-prev', `vu-magazine.com/blog/${slug}`);
+    } catch {}
+  }
+}
+async function regenSlug() {
+  const t = document.getElementById('art-title').value;
+  if (!t) return toast('Saisissez un titre', 'i');
+  const {slug} = await api('POST', '/api/slug', {title:t});
+  document.getElementById('art-slug').value = slug;
+  txt('slug-prev', `vu-magazine.com/blog/${slug}`);
+  updateSEO();
+}
+
+function onStatusChange(v) {
+  const sw = document.getElementById('sched-wrap');
+  if (sw) sw.style.display = v==='scheduled' ? '' : 'none';
+}
+
+// ── Sauvegarde ────────────────────────────────────────────────
+async function saveArt(statusOverride) {
+  const title = document.getElementById('art-title').value.trim();
+  const slug  = document.getElementById('art-slug').value.trim();
+  if (!title) return toast('Titre obligatoire', 'e');
+  if (!slug)  return toast('Slug obligatoire', 'e');
+  const content = edMode==='v'
+    ? document.getElementById('art-ed').innerHTML
+    : document.getElementById('art-raw').value;
+  const body = {
+    title, slug,
+    excerpt:          document.getElementById('art-exc').value,
+    content,
+    status:           statusOverride || document.getElementById('art-status').value,
+    category_id:      document.getElementById('art-cat').value || null,
+    author_id:        document.getElementById('art-auth').value || null,
+    read_time_min:    parseInt(document.getElementById('art-rt').value) || 5,
+    meta_title:       document.getElementById('art-mt').value,
+    meta_description: document.getElementById('art-md').value,
+    cover_image_url:  document.getElementById('art-cover').value,
+    faq
+  };
+  const id = document.getElementById('art-id').value;
+  const r = id
+    ? await api('PUT',  `/api/articles/${id}`, body)
+    : await api('POST', '/api/articles', body);
+  if (r) {
+    document.getElementById('art-id').value = r.id;
+    currentId = r.id;
+    document.getElementById('del-btn').style.display = '';
+  }
+  toast(statusOverride==='published' ? '✨ Article publié !' : '💾 Brouillon sauvegardé');
+}
+
+async function delArt() {
+  const id = document.getElementById('art-id').value;
+  if (!id || !confirm('Archiver cet article ?')) return;
+  await api('DELETE', `/api/articles/${id}`);
+  toast('Article archivé');
+  window.location.href = '/articles';
+}
+
+// ── Éditeur rich-text ─────────────────────────────────────────
+function fmt(cmd) {
+  if (edMode !== 'v') return;
+  document.getElementById('art-ed').focus();
+  document.execCommand(cmd, false, null);
+  updateWC();
+}
+function fmtB(tag) {
+  if (edMode !== 'v') return;
+  document.getElementById('art-ed').focus();
+  document.execCommand('formatBlock', false, tag);
+  updateWC();
+}
+function insLink() {
+  const u = prompt('URL :');
+  if (u) { document.getElementById('art-ed').focus(); document.execCommand('createLink', false, u); }
+}
+function insVideo() {
+  const u = prompt('URL YouTube :');
+  if (!u) return;
+  const id2 = u.match(/(?:youtu.be\/|v=)([^&]+)/)?.[1] || u;
+  document.getElementById('art-ed').focus();
+  document.execCommand('insertHTML', false,
+    `<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0">` +
+    `<iframe src="https://www.youtube.com/embed/${id2}" ` +
+    `style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>`);
+}
+function setMode(m) {
+  edMode = m;
+  const v = document.getElementById('art-ed');
+  const r = document.getElementById('art-raw');
+  document.getElementById('md-v').classList.toggle('on', m==='v');
+  document.getElementById('md-h').classList.toggle('on', m==='h');
+  if (m === 'h') { r.value=v.innerHTML; v.style.display='none'; r.style.display='block'; }
+  else           { v.innerHTML=r.value; r.style.display='none'; v.style.display='block'; }
+}
+function onEdChange() { updateWC(); updateSEO(); }
+function updateWC() {
+  const c = edMode==='v'
+    ? (document.getElementById('art-ed')?.innerText||'')
+    : (document.getElementById('art-raw')?.value||'').replace(/<[^>]+>/g,' ');
+  const w  = c.trim().split(/\s+/).filter(Boolean).length;
+  const rt = Math.max(1, Math.ceil(w/200));
+  const el = document.getElementById('wc');
+  if (el) { el.textContent=`${w} mots`; el.className='wc '+(w>=800?'ok':w>=400?'wn':''); }
+  txt('rt', `${rt} min de lecture`);
+}
+
+// ── SEO score ─────────────────────────────────────────────────
+const SEO_C = [
+  [() => !!document.getElementById('art-title')?.value,                         'Titre renseigné'],
+  [() => (document.getElementById('art-slug')?.value||'').length > 3,           'Slug optimisé'],
+  [() => (document.getElementById('art-exc')?.value||'').length >= 80,          'Extrait (80+)'],
+  [() => (document.getElementById('art-md')?.value||'').length >= 120,          'Meta description'],
+  [() => (document.getElementById('art-ed')?.innerText||'').split(/\s+/).filter(Boolean).length >= 800, '800+ mots'],
+  [() => !!document.getElementById('art-cover')?.value,                         'Image principale'],
+  [() => faq.length >= 2,                                                        'FAQ Schema'],
+];
+function updateSEO() {
+  const exc = document.getElementById('art-exc')?.value || '';
+  const mt  = document.getElementById('art-mt')?.value  || '';
+  const md  = document.getElementById('art-md')?.value  || '';
+  txt('exc-c', `${exc.length}/160`);
+  txt('mt-c',  `${mt.length}/60`);
+  txt('md-c',  `${md.length}/160`);
+  let sc = 0;
+  const cc = document.getElementById('seo-checks'); if (!cc) return;
+  cc.innerHTML = SEO_C.map(([fn,lbl]) => {
+    const ok = fn(); if (ok) sc++;
+    return `<div class="seo-chk ${ok?'ok':'bad'}"><span>${ok?'✅':'○'}</span> ${lbl}</div>`;
+  }).join('');
+  const fb = document.getElementById('seo-fill');
+  if (fb) { fb.style.width=Math.round(sc/SEO_C.length*100)+'%'; fb.style.background=sc>=6?'var(--green)':sc>=4?'var(--yellow)':'var(--accent)'; }
+  txt('seo-val', `${sc}/${SEO_C.length}`);
+}
+
+// ── FAQ ───────────────────────────────────────────────────────
+function addFAQ()       { faq.push({q:'',a:''}); renderFAQ(); updateSEO(); }
+function remFAQ(i)      { faq.splice(i,1); renderFAQ(); updateSEO(); }
+function updFAQ(i,f,v)  { if (faq[i]) faq[i][f]=v; updateSEO(); }
+function renderFAQ() {
+  const c = document.getElementById('faq-list');
+  const e = document.getElementById('faq-empty');
+  if (!faq.length) { if(c)c.innerHTML=''; if(e)e.style.display='block'; return; }
+  if (e) e.style.display='none';
+  if (c) c.innerHTML = faq.map((item,i) => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="background:var(--accent);color:#fff;width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">${i+1}</span>
+        <button onclick="remFAQ(${i})" style="margin-left:auto;background:none;color:var(--ink3);cursor:pointer">✕</button>
+      </div>
+      <input class="inp" type="text" placeholder="Question…" value="${esc(item.q)}" oninput="updFAQ(${i},'q',this.value)" style="margin-bottom:5px;font-weight:500">
+      <textarea class="ta" placeholder="Réponse…" oninput="updFAQ(${i},'a',this.value)" style="min-height:50px;font-size:12px">${esc(item.a)}</textarea>
+    </div>`).join('');
+}
+
+// ── Image cover ───────────────────────────────────────────────
+function setCoverPrev(url) {
+  const el = document.getElementById('cov-prev');
+  if (el) el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
+  document.getElementById('art-cover').value = url;
+}
+
+// ── Planifier ─────────────────────────────────────────────────
+function openSchedule() { closeAllModals(); document.getElementById('modal-sched').classList.add('open'); }
+function confirmSched() {
+  const dt = document.getElementById('sched-modal-dt').value;
+  if (!dt) return toast('Choisissez une date', 'e');
+  document.getElementById('art-status').value = 'scheduled';
+  document.getElementById('art-sched-dt') && (document.getElementById('art-sched-dt').value = dt);
+  closeMod('modal-sched');
+  saveArt('scheduled');
+}
+
+// ── Import URL ────────────────────────────────────────────────
+async function importUrl() {
+  const url = document.getElementById('import-url').value.trim();
+  if (!url) return toast('Entrez une URL', 'i');
+  toast('⏳ Import en cours…', 'i');
+  try {
+    const r = await api('POST', '/api/agent', {type:'actualites', title:`Adapter depuis: ${url}`, keyword:url, content:`Récupère et adapte en Brand Voice VU Magazine : ${url}`});
+    if (r.result) { document.getElementById('art-ed').innerHTML=mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Article importé !'); }
+  } catch { toast('Vérifiez ANTHROPIC_API_KEY', 'e'); }
+}
+function togglePaste() {
+  const pa = document.getElementById('paste-area');
+  pa.style.display = pa.style.display === 'none' ? '' : 'none';
+}
+async function adaptPaste() {
+  const text = document.getElementById('paste-txt').value.trim();
+  if (!text) return toast('Collez du texte', 'i');
+  toast('⏳ Adaptation…', 'i');
+  try {
+    const r = await api('POST', '/api/agent', {type:'correcteur', title:'Adapter en Brand Voice', content:text});
+    if (r.result) { document.getElementById('art-ed').innerHTML=mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Texte adapté !'); }
+  } catch {}
+}
+
+// ── Génération IA ─────────────────────────────────────────────
+async function aiGen(type) {
+  const title   = document.getElementById('art-title').value;
+  const content = document.getElementById('art-ed').innerText || '';
+  const el = document.getElementById('ai-ed-res');
+  if (el) { el.innerHTML='<div class="loading"><div class="spin"></div></div>'; el.classList.add('show'); }
+  const prompts = {
+    article:    `Génère un article complet de 1000-1400 mots pour VU Magazine sur : "${title}". Brand Voice Stéphanie Jouin : expert, direct, factuel, Social Media France. Structure H2/H3.`,
+    paragraph:  `Génère un paragraphe de 80-120 mots sur : "${title||content.substring(0,100)}". Ton Stéphanie Jouin, VU Magazine.`,
+    title:      `Génère 5 titres SEO pour : "${title||content.substring(0,100)}".`,
+    intro:      `Réécris cette introduction avec une accroche forte : ${content.substring(0,400)}`,
+    conclusion: `Conclusion actionnable pour : ${content.substring(0,400)}`
+  };
+  try {
+    const r = await api('POST', '/api/agent', {type:'correcteur', title, keyword:title, content:prompts[type]||''});
+    if (el) {
+      el.innerHTML = mdHtml(r.result||'');
+      const btn = document.createElement('button');
+      btn.className = 'btn p sm'; btn.style.marginTop = '8px'; btn.textContent = '↓ Insérer';
+      btn.onclick = () => { document.getElementById('art-ed').innerHTML += mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Contenu inséré !'); };
+      el.appendChild(btn); el.classList.add('show');
+    }
+  } catch(e) { if(el) { el.textContent='❌ '+e.message; el.classList.add('show'); } }
+}
+
+async function genExcerpt() {
+  const t = document.getElementById('art-title').value;
+  const c = document.getElementById('art-ed').innerText || '';
+  try {
+    const r = await api('POST', '/api/agent', {type:'correcteur', title:t, content:`Génère un extrait SEO de 120-160 caractères. Article : ${c.substring(0,400)}`});
+    if (r.result) { document.getElementById('art-exc').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,160); updateSEO(); toast('✅ Extrait généré !'); }
+  } catch {}
+}
+async function genFAQ() {
+  const t = document.getElementById('art-title').value;
+  const c = document.getElementById('art-ed').innerText || '';
+  toast('⏳ Génération FAQ…', 'i');
+  try {
+    const r = await api('POST', '/api/agent', {type:'fan_out', title:t, keyword:t, content:c});
+    if (r.result) {
+      const lines = r.result.split('\n').filter(l => l.includes('?'));
+      lines.slice(0,5).forEach(q => { faq.push({q:q.replace(/[*#>\d.]/g,'').trim(), a:'À compléter…'}); });
+      renderFAQ(); updateSEO(); toast('✅ FAQ générée !');
+    }
+  } catch {}
+}
+async function genAlt() {
+  const t = document.getElementById('art-title').value || 'Social Media Marketing';
+  try {
+    const r = await api('POST', '/api/agent', {type:'correcteur', title:t, content:`Génère un texte ALT SEO de 80-120 caractères pour une image sur "${t}". En français.`});
+    if (r.result) { document.getElementById('art-alt').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,125); toast('✅ ALT généré !'); }
+  } catch {}
+}
+
+// ── Agents rapides ────────────────────────────────────────────
+async function quickAgent(type) {
+  const t  = document.getElementById('art-title')?.value || '';
+  const c  = document.getElementById('art-ed')?.innerText || '';
+  const el = document.getElementById(`qa-${type}`);
+  if (el) { el.innerHTML='<div class="loading"><div class="spin"></div></div>'; el.classList.add('show'); }
+  try {
+    const r = await api('POST', '/api/agent', {type, title:t, keyword:t, content:c});
+    if (el) { el.innerHTML=mdHtml(r.result||''); el.classList.add('show'); }
+  } catch(e) { if(el) { el.textContent='❌ '+e.message; el.classList.add('show'); } }
+}
+
+// ── IA inline (float) ─────────────────────────────────────────
+function showAiFloat(e) {
+  const fl = document.getElementById('ai-float');
+  fl.style.top  = (e.clientY+10)+'px';
+  fl.style.left = Math.min(e.clientX, window.innerWidth-350)+'px';
+  fl.classList.add('show');
+  document.getElementById('ai-fl-inp').focus();
+  floatOpen = true;
+}
+function closeFloat() { document.getElementById('ai-float').classList.remove('show'); floatOpen=false; }
+async function runFloat() {
+  const prompt = document.getElementById('ai-fl-inp').value.trim();
+  const sel    = window.getSelection()?.toString().trim() || '';
+  const ctx    = sel || document.getElementById('art-ed').innerText.substring(0,400);
+  try {
+    const r = await api('POST', '/api/agent', {type:'correcteur', title:document.getElementById('art-title').value, content:`${prompt}\n\nTexte : ${ctx}`});
+    if (r.result) {
+      if (sel) document.execCommand('insertHTML', false, mdHtml(r.result));
+      else document.getElementById('art-ed').innerHTML += mdHtml(r.result);
+      updateWC(); updateSEO(); closeFloat(); toast('✅ IA inline appliquée !');
+    }
+  } catch {}
+}
+async function floatQuick(p) { document.getElementById('ai-fl-inp').value=p; await runFloat(); }
+
+// ── Médiathèque ───────────────────────────────────────────────
+const DEMO_IMGS = [
+  'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=300&q=80',
+  'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&q=80',
+  'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=300&q=80',
+  'https://images.unsplash.com/photo-1552581234-26160f608093?w=300&q=80',
+  'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=300&q=80',
+  'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=300&q=80',
+];
+
+function openMediaPicker(ctx) {
+  mCtx = ctx;
+  closeAllModals();
+  document.getElementById('modal-media').classList.add('open');
+  switchMSrc2('unsplash');
+}
+function switchMSrc2(src) {
+  ['unsplash','pexels','upload'].forEach(s => {
+    const b = document.getElementById(`ms2-${s}`);
+    if (b) b.style.cssText = s===src ? 'background:var(--accent);color:#fff' : '';
+  });
+  searchMedia('modal');
+}
+async function searchMedia(ctx) {
+  const grid = document.getElementById('modal-media-grid');
+  if (!grid) return;
+  const q = document.getElementById('m-modal-srch')?.value || 'social media marketing';
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spin"></div></div>';
+  try {
+    const d = await api('GET', `/api/photos?q=${encodeURIComponent(q)}&src=unsplash&per_page=12`);
+    const photos = d.photos || [];
+    grid.innerHTML = (photos.length ? photos : DEMO_IMGS.map(url=>({url,thumb:url,credit:''}))).map(p =>
+      `<div class="m-thumb ${mSel===p.url?'sel':''}" onclick="selMedia('${esc(p.url)}')">` +
+      `<img src="${esc(p.thumb||p.url)}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` +
+      `<div class="m-check">✓</div></div>`
+    ).join('');
+  } catch {
+    grid.innerHTML = DEMO_IMGS.map(url =>
+      `<div class="m-thumb" onclick="selMedia('${url}')"><img src="${url}" loading="lazy" style="width:100%;height:100%;object-fit:cover"><div class="m-check">✓</div></div>`
+    ).join('');
+  }
+}
+function selMedia(url) {
+  mSel = url;
+  document.querySelectorAll('#modal-media-grid .m-thumb').forEach(t =>
+    t.classList.toggle('sel', t.querySelector('img')?.src === url)
+  );
+}
+function confirmMedia() {
+  if (!mSel) return toast('Sélectionnez une image', 'i');
+  if (mCtx === 'cover') {
+    setCoverPrev(mSel);
+  } else if (mCtx === 'editor') {
+    document.getElementById('art-ed').focus();
+    document.execCommand('insertHTML', false, `<img src="${mSel}" alt="" style="max-width:100%;border-radius:6px;margin:10px 0">`);
+    updateWC();
+  }
+  closeMod('modal-media');
+  toast('✅ Image insérée !');
+}
+</script>
+</body>
+</html>
