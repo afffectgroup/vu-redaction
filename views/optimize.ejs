@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Optimiser'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Optimiser'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Optimiser <span>un article</span></div>
+        <div class="sec-sub">Éditeur · Preview · SEO · Structure Hn</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="opt-api-st" class="status-chip" style="font-size:11px">⏳</div>
+        <button class="btn p sm" onclick="saveOptArt()">💾 Sauvegarder</button>
+      </div>
+    </div>
+
+    <!-- Sélecteur article -->
+    <div class="card" style="margin-bottom:14px;padding:14px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <select class="sel" id="opt-sel" onchange="loadOptArt()" style="flex:1">
+          <option value="">-- Sélectionner un article à optimiser --</option>
+        </select>
+        <a id="opt-live-link" href="#" target="_blank" class="btn g sm" style="display:none">↗ Live</a>
+      </div>
+      <div id="opt-meta-bar" style="display:none;margin-top:10px;gap:10px;flex-wrap:wrap;align-items:center">
+        <span id="opt-cat-badge" style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:var(--surface)"></span>
+        <span style="font-size:11px;color:var(--ink3);font-family:var(--mono)" id="opt-slug-bar"></span>
+        <span style="font-size:11px;color:var(--ink3)" id="opt-author-bar"></span>
+        <span style="font-size:11px;color:var(--ink3)" id="opt-date-bar"></span>
+      </div>
+    </div>
+
+    <!-- Split view -->
+    <div class="opt-split" id="opt-main" style="display:none">
+
+      <!-- GAUCHE : éditeur -->
+      <div class="vgap">
+        <div class="card" style="padding:14px">
+          <div class="card-t">✏️ Édition</div>
+          <div class="vgap">
+            <div class="field">
+              <div class="lbl">Titre <span id="opt-tc" style="font-family:var(--mono);font-weight:400;color:var(--ink4)">0 car.</span></div>
+              <input class="inp" type="text" id="opt-edit-title" oninput="optLiveUpdate()" placeholder="Titre de l'article…">
+            </div>
+            <div class="field">
+              <div class="lbl">Extrait <span id="opt-ec" style="font-family:var(--mono);font-weight:400;color:var(--ink4)">0/160</span></div>
+              <textarea class="ta" id="opt-edit-exc" style="min-height:60px" oninput="optLiveUpdate()" placeholder="Résumé accrocheur (160 car. max)…"></textarea>
+            </div>
+            <div class="field">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <div class="lbl">Contenu HTML</div>
+                <div style="display:flex;gap:4px">
+                  <button class="btn g sm" id="opt-mode-src" onclick="setOptMode('src')" style="font-size:11px;background:var(--accent);color:#fff">Code</button>
+                  <button class="btn g sm" id="opt-mode-prev" onclick="setOptMode('vis')" style="font-size:11px">Visuel</button>
+                </div>
+              </div>
+              <textarea class="ta" id="opt-edit-content" style="min-height:260px;font-size:12px;line-height:1.7;font-family:var(--mono)" oninput="optLiveUpdate()" placeholder="Contenu HTML…"></textarea>
+              <div id="opt-vis-content" contenteditable="true" style="display:none;min-height:260px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:13px;line-height:1.8;outline:none" oninput="optVisUpdate()"></div>
+            </div>
+            <div class="field">
+              <div class="lbl">Meta description <span id="opt-mc" style="font-family:var(--mono);font-weight:400;color:var(--ink4)">0/160</span></div>
+              <textarea class="ta" id="opt-edit-meta" style="min-height:60px" oninput="optLiveUpdate()" placeholder="Description pour Google (160 car. max)…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agents IA -->
+        <div class="card" style="padding:14px">
+          <div class="card-t">⬡ Agents IA</div>
+          <div class="g2" style="gap:6px">
+            <button class="btn g sm" onclick="runOpt('eeat')" style="justify-content:start">🧑‍🔬 E-E-A-T</button>
+            <button class="btn g sm" onclick="runOpt('content_gap')" style="justify-content:start">🪏 Content Gap</button>
+            <button class="btn g sm" onclick="runOpt('links')" style="justify-content:start">🔗 Maillage</button>
+            <button class="btn g sm" onclick="runOpt('qat')" style="justify-content:start">🫆 Audit QAT</button>
+            <button class="btn g sm" onclick="runOpt('architecture_hn')" style="justify-content:start">🕸️ Structure Hn</button>
+            <button class="btn g sm" onclick="runOpt('schema_org')" style="justify-content:start">⚙️ Schema.org</button>
+            <button class="btn g sm" onclick="runOpt('chatgpt_expert')" style="justify-content:start">🦾 ChatGPT</button>
+            <button class="btn g sm" onclick="runOpt('correcteur')" style="justify-content:start">✍️ Correcteur</button>
+          </div>
+        </div>
+
+        <!-- Résultat agent -->
+        <div class="card" id="opt-res-wrap" style="display:none;padding:14px">
+          <div class="card-t">
+            <span id="opt-res-ttl">Résultat</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn g sm" onclick="cpRes('opt-res-body')">📋 Copier</button>
+              <button class="btn g sm" onclick="document.getElementById('opt-res-wrap').style.display='none'">✕</button>
+            </div>
+          </div>
+          <div id="opt-res-body" class="result-body"></div>
+        </div>
+      </div>
+
+      <!-- DROITE : preview tabs -->
+      <div>
+        <div class="opt-tabs">
+          <div class="opt-tab on" onclick="switchOptTab('preview',this)">👁 Aperçu</div>
+          <div class="opt-tab" onclick="switchOptTab('seo',this)">🔍 SEO</div>
+          <div class="opt-tab" onclick="switchOptTab('structure',this)">🕸 Structure</div>
+        </div>
+
+        <!-- Aperçu article -->
+        <div class="opt-pane on" id="opt-pane-preview">
+          <div class="art-prev-wrap">
+            <div id="opt-prev-img" class="art-prev-img empty">Pas d'image de couverture</div>
+            <div class="art-prev-body">
+              <div class="art-prev-cat" id="opt-prev-cat"></div>
+              <div class="art-prev-title" id="opt-prev-title">Titre de l'article</div>
+              <div class="art-prev-meta">
+                <span id="opt-prev-author">Auteur</span>
+                <span>—</span>
+                <span id="opt-prev-date"></span>
+                <span>·</span>
+                <span id="opt-prev-rt">— min</span>
+              </div>
+              <div class="art-prev-excerpt" id="opt-prev-exc" style="display:none"></div>
+              <div class="art-prev-content" id="opt-prev-content"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEO / SERP -->
+        <div class="opt-pane" id="opt-pane-seo">
+          <div class="serp-wrap">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Aperçu Google Search</div>
+            <div class="serp-snippet">
+              <div class="serp-url">
+                <div class="serp-url-dot"></div>
+                <span style="font-size:12px;color:#202124">vu-magazine.com › blog › <span id="serp-slug" style="color:#4d5156"></span></span>
+              </div>
+              <div class="serp-title" id="serp-title">Titre — VU Magazine</div>
+              <div class="serp-desc" id="serp-desc">Meta description…</div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:11px;font-weight:600">Titre SEO</span>
+                <span class="serp-char" id="serp-tc-val">0/60</span>
+              </div>
+              <div class="serp-bar"><div class="serp-bar-fill" id="serp-tc-bar" style="width:0"></div></div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:11px;font-weight:600">Meta description</span>
+                <span class="serp-char" id="serp-mc-val">0/160</span>
+              </div>
+              <div class="serp-bar"><div class="serp-bar-fill" id="serp-mc-bar" style="width:0"></div></div>
+            </div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px">Checklist SEO</div>
+            <div id="opt-seo-chks" class="vgap" style="gap:4px"></div>
+          </div>
+        </div>
+
+        <!-- Structure Hn -->
+        <div class="opt-pane" id="opt-pane-structure">
+          <div class="card" style="padding:14px">
+            <div class="stat-pills" id="opt-stats-pills">
+              <div class="stat-pill"><strong>—</strong> mots</div>
+            </div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px">Structure des titres</div>
+            <div class="hn-tree" id="opt-hn-tree">
+              <div style="font-size:12px;color:var(--ink3);font-style:italic">Chargez un article pour voir la structure</div>
+            </div>
+            <div id="opt-hn-warns" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- État vide -->
+    <div id="opt-empty" class="empty" style="padding:48px 20px">
+      <div style="font-size:32px;margin-bottom:10px">🔍</div>
+      <div style="font-weight:500;margin-bottom:6px">Sélectionnez un article</div>
+      <div style="font-size:12px;color:var(--ink3)">L'éditeur et la preview s'ouvriront automatiquement</div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+// ── State local ───────────────────────────────────────────────
+let optArt = null;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Charger la liste des articles
+  try {
+    const d = await api('GET', '/api/articles?limit=200');
+    const sel = document.getElementById('opt-sel');
+    d.articles.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = `[${a.status==='published'?'✅':'📝'}] ${a.title.substring(0,65)}`;
+      sel.appendChild(o);
+    });
+  } catch(e) {}
+
+  // Statut API
+  try {
+    const d = await api('GET', '/api/agents');
+    const el = document.getElementById('opt-api-st');
+    if(el) { el.textContent = d.anthropic_key ? '✅ Claude API' : '⚠️ Clé manquante'; el.style.color = d.anthropic_key ? 'var(--green)' : 'var(--yellow)'; }
+  } catch(e) {}
+
+  // Pré-sélection via URL ?id=xxx
+  const params = new URLSearchParams(window.location.search);
+  const preId = params.get('id');
+  if (preId) {
+    const sel = document.getElementById('opt-sel');
+    if (sel) { sel.value = preId; loadOptArt(); }
+  }
+});
+
+// ── Chargement article ────────────────────────────────────────
+async function loadOptArt() {
+  const id = document.getElementById('opt-sel').value;
+  if (!id) {
+    optArt = null;
+    document.getElementById('opt-main').style.display = 'none';
+    document.getElementById('opt-empty').style.display = '';
+    return;
+  }
+  optArt = await api('GET', `/api/articles/${id}`);
+  document.getElementById('opt-empty').style.display = 'none';
+  document.getElementById('opt-main').style.display = 'grid';
+
+  // Champs éditeur
+  const setVal = (id, v) => { const e=document.getElementById(id); if(e) e.value=v||''; };
+  setVal('opt-edit-title',   optArt.title);
+  setVal('opt-edit-exc',     optArt.excerpt);
+  setVal('opt-edit-content', optArt.content||'');
+  setVal('opt-edit-meta',    optArt.meta_description);
+
+  // Barre méta
+  const mb = document.getElementById('opt-meta-bar');
+  if (mb) mb.style.display = 'flex';
+  const cb = document.getElementById('opt-cat-badge');
+  if (cb) { cb.textContent=optArt.category_name||''; cb.style.background=optArt.category_color||'var(--surface)'; cb.style.color='#fff'; }
+  txt('opt-slug-bar',   `/blog/${optArt.slug}`);
+  txt('opt-author-bar', optArt.author_name||'');
+  txt('opt-date-bar',   fmtFr(optArt.published_at));
+
+  // Lien live
+  const ll = document.getElementById('opt-live-link');
+  if (ll) { ll.href=`https://vu-magazine.com/blog/${optArt.slug}`; ll.style.display=''; }
+
+  optLiveUpdate();
+}
+
+// ── Toggle Code / Visuel ──────────────────────────────────────
+function setOptMode(mode) {
+  const ta  = document.getElementById('opt-edit-content');
+  const vis = document.getElementById('opt-vis-content');
+  const btnSrc = document.getElementById('opt-mode-src');
+  const btnVis = document.getElementById('opt-mode-prev');
+  if (mode === 'src') {
+    if (vis.style.display !== 'none') ta.value = vis.innerHTML;
+    ta.style.display=''; vis.style.display='none';
+    btnSrc.style.cssText='font-size:11px;background:var(--accent);color:#fff';
+    btnVis.style.cssText='font-size:11px';
+  } else {
+    vis.innerHTML = ta.value;
+    ta.style.display='none'; vis.style.display='';
+    btnSrc.style.cssText='font-size:11px';
+    btnVis.style.cssText='font-size:11px;background:var(--accent);color:#fff';
+  }
+}
+
+function optVisUpdate() {
+  const vis = document.getElementById('opt-vis-content');
+  const ta  = document.getElementById('opt-edit-content');
+  if (ta) ta.value = vis.innerHTML;
+  optLiveUpdate();
+}
+
+// ── Live update toutes les previews ──────────────────────────
+function optLiveUpdate() {
+  const title   = document.getElementById('opt-edit-title')?.value   || '';
+  const excerpt = document.getElementById('opt-edit-exc')?.value     || '';
+  const content = document.getElementById('opt-edit-content')?.value || '';
+  const meta    = document.getElementById('opt-edit-meta')?.value    || '';
+  const slug    = optArt?.slug || '';
+
+  // Compteurs
+  const tc = document.getElementById('opt-tc');
+  if (tc) { tc.textContent=`${title.length} car.`; tc.style.color=title.length>60?'var(--accent)':'var(--ink4)'; }
+  const ec = document.getElementById('opt-ec');
+  if (ec) { ec.textContent=`${excerpt.length}/160`; ec.style.color=excerpt.length>160?'var(--accent)':excerpt.length>=80?'var(--green)':'var(--ink4)'; }
+  const mc = document.getElementById('opt-mc');
+  if (mc) { mc.textContent=`${meta.length}/160`; mc.style.color=meta.length>160?'var(--accent)':meta.length>=120?'var(--green)':'var(--ink4)'; }
+
+  // ── Preview article ────────────────────────────────────────
+  txt('opt-prev-title', title||'Titre de l\'article');
+  const pe = document.getElementById('opt-prev-exc');
+  if (pe) { pe.textContent=excerpt; pe.style.display=excerpt?'':'none'; }
+  const pc = document.getElementById('opt-prev-content');
+  if (pc) pc.innerHTML = content;
+  // Image
+  const pi = document.getElementById('opt-prev-img');
+  if (pi) {
+    const img = optArt?.cover_image_url || optArt?.storage_url || '';
+    if (img) { pi.innerHTML=`<img src="${img}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='Pas d\'image';">`; pi.classList.remove('empty'); }
+    else     { pi.innerHTML='Pas d\'image de couverture'; pi.classList.add('empty'); }
+  }
+  const pcat = document.getElementById('opt-prev-cat');
+  if (pcat) { pcat.textContent=optArt?.category_name||''; pcat.style.color=optArt?.category_color||'var(--ink3)'; }
+  txt('opt-prev-author', optArt?.author_name||'');
+  txt('opt-prev-date',   fmtFr(optArt?.published_at));
+  const wc = content.replace(/<[^>]+>/g,' ').split(/\s+/).filter(Boolean).length;
+  const rt = Math.max(1, Math.ceil(wc/200));
+  txt('opt-prev-rt', `${rt} min de lecture`);
+
+  // ── SEO / SERP ─────────────────────────────────────────────
+  const seoTitle = title + (title.toLowerCase().includes('vu magazine') ? '' : ' — VU Magazine');
+  txt('serp-title', seoTitle);
+  txt('serp-desc',  meta||excerpt||'');
+  txt('serp-slug',  slug);
+  // Barres
+  const tcl = seoTitle.length;
+  const tv = document.getElementById('serp-tc-val'); if(tv){ tv.textContent=`${tcl}/60`; tv.style.color=tcl>60?'var(--accent)':tcl>=40?'var(--green)':'var(--ink3)'; }
+  const tb = document.getElementById('serp-tc-bar'); if(tb){ tb.style.width=Math.min(tcl/60*100,100)+'%'; tb.style.background=tcl>60?'var(--accent)':tcl>=40?'var(--green)':'var(--yellow)'; }
+  const ml = meta.length;
+  const mv = document.getElementById('serp-mc-val'); if(mv){ mv.textContent=`${ml}/160`; mv.style.color=ml>160?'var(--accent)':ml>=120?'var(--green)':'var(--ink3)'; }
+  const mb2 = document.getElementById('serp-mc-bar'); if(mb2){ mb2.style.width=Math.min(ml/160*100,100)+'%'; mb2.style.background=ml>160?'var(--accent)':ml>=120?'var(--green)':'var(--yellow)'; }
+  // Checklist
+  const chks = [
+    [!!title,                        'Titre renseigné'],
+    [title.length <= 60,             'Titre ≤ 60 caractères'],
+    [!!slug,                         'Slug présent'],
+    [excerpt.length >= 80,           'Extrait ≥ 80 caractères'],
+    [meta.length >= 120,             'Meta description ≥ 120 car.'],
+    [wc >= 800,                      `Contenu 800+ mots (${wc})`],
+    [!!(optArt?.cover_image_url||optArt?.storage_url), 'Image de couverture'],
+  ];
+  const cc = document.getElementById('opt-seo-chks');
+  if (cc) cc.innerHTML = chks.map(([ok,lbl]) => `<div class="seo-chk ${ok?'ok':'bad'}"><span>${ok?'✅':'○'}</span> ${lbl}</div>`).join('');
+
+  // ── Structure Hn ───────────────────────────────────────────
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(content, 'text/html');
+  const headings = [...doc.querySelectorAll('h1,h2,h3,h4')];
+  const hcolors = {H1:'#C8303C', H2:'#1D6FD8', H3:'#7C4DCC', H4:'#2D9E4F'};
+  const tree = document.getElementById('opt-hn-tree');
+  if (tree) {
+    tree.innerHTML = headings.length
+      ? headings.map(h => `
+          <div class="hn-item" style="margin-left:${(parseInt(h.tagName[1])-1)*14}px">
+            <div class="hn-badge" style="background:${hcolors[h.tagName]||'#888'}">${h.tagName}</div>
+            <div class="hn-text">${esc(h.textContent.trim().substring(0,80))}</div>
+          </div>`).join('')
+      : '<div style="font-size:12px;color:var(--ink3);font-style:italic">Aucun titre (Hn) dans le contenu</div>';
+  }
+  // Alertes
+  const h1s = headings.filter(h => h.tagName==='H1');
+  const warns = [];
+  if (!h1s.length)   warns.push('⚠️ Aucun H1 — obligatoire pour le SEO');
+  if (h1s.length>1)  warns.push(`⚠️ ${h1s.length} H1 détectés — gardez-en 1 seul`);
+  if (!headings.filter(h=>h.tagName==='H2').length && wc>400) warns.push('💡 Aucun H2 — structurez avec des sous-titres');
+  const wd = document.getElementById('opt-hn-warns');
+  if (wd) wd.innerHTML = warns.map(w=>`<div class="hn-warn">${w}</div>`).join('') || (headings.length?'<div class="hn-ok">✅ Structure Hn cohérente</div>':'');
+  // Stats
+  const sp = document.getElementById('opt-stats-pills');
+  if (sp) sp.innerHTML = `
+    <div class="stat-pill"><strong>${wc.toLocaleString('fr')}</strong> mots</div>
+    <div class="stat-pill"><strong>${rt}</strong> min lecture</div>
+    <div class="stat-pill"><strong>${headings.length}</strong> titres</div>
+    <div class="stat-pill"><strong>${(content.match(/<p/gi)||[]).length}</strong> §</div>`;
+}
+
+function switchOptTab(tab, el) {
+  document.querySelectorAll('.opt-tab').forEach(t => t.classList.remove('on')); el?.classList.add('on');
+  document.querySelectorAll('.opt-pane').forEach(p => p.classList.remove('on'));
+  document.getElementById(`opt-pane-${tab}`)?.classList.add('on');
+}
+
+// ── Agents ────────────────────────────────────────────────────
+let _agRunning = false;
+async function runOpt(type) {
+  if (!optArt) return toast('Sélectionnez un article', 'i');
+  if (_agRunning) return toast('Un agent est déjà en cours…', 'i');
+  _agRunning = true;
+  const wrap = document.getElementById('opt-res-wrap');
+  const body = document.getElementById('opt-res-body');
+  const ttl  = document.getElementById('opt-res-ttl');
+  if (wrap) wrap.style.display = '';
+  if (body) body.innerHTML = '<div class="loading"><div class="spin"></div> Analyse en cours…</div>';
+  if (ttl)  ttl.textContent = type.toUpperCase() + ' — Analyse';
+  const content = document.getElementById('opt-edit-content')?.value || optArt.content || '';
+  const title   = document.getElementById('opt-edit-title')?.value  || optArt.title;
+  try {
+    const r = await api('POST', '/api/agent', {type, title, keyword:title, excerpt:optArt.excerpt, content});
+    if (body) body.innerHTML = mdHtml(r.result||'');
+    wrap?.scrollIntoView({behavior:'smooth'});
+    toast('Agent terminé ✅');
+  } catch(e) {
+    if (body) body.innerHTML = `<div style="color:var(--accent)">❌ ${e.message}</div>`;
+  } finally { _agRunning = false; }
+}
+
+// ── Sauvegarde ────────────────────────────────────────────────
+async function saveOptArt() {
+  if (!optArt) return toast('Aucun article chargé', 'e');
+  const title           = document.getElementById('opt-edit-title')?.value?.trim();
+  const excerpt         = document.getElementById('opt-edit-exc')?.value?.trim();
+  const content         = document.getElementById('opt-edit-content')?.value?.trim();
+  const meta_description = document.getElementById('opt-edit-meta')?.value?.trim();
+  if (!title) return toast('Le titre est obligatoire', 'e');
+  try {
+    await api('PUT', `/api/articles/${optArt.id}`, {...optArt, title, excerpt, content, meta_description});
+    optArt = {...optArt, title, excerpt, content, meta_description};
+    toast('✅ Article sauvegardé !');
+  } catch(e) { toast('Erreur : '+e.message, 'e'); }
+}
+
+// Raccourci clavier save
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='s') { e.preventDefault(); saveOptArt(); }
+});
+</script>
+</body>
+</html>
