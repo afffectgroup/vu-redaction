@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Médiathèque'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Médiathèque'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Médiathèque</div>
+        <div class="sec-sub">Unsplash · Pexels · Upload · ALT auto</div>
+      </div>
+      <span id="m-count" style="font-size:12px;color:var(--ink3)"></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
+
+      <!-- Grille images -->
+      <div>
+        <!-- Barre sources + recherche -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn sm" id="ms-u" onclick="switchMSrc('unsplash')" style="background:var(--accent);color:#fff">Unsplash</button>
+          <button class="btn g sm" id="ms-p" onclick="switchMSrc('pexels')">Pexels</button>
+          <button class="btn g sm" id="ms-up" onclick="switchMSrc('upload')">Upload</button>
+          <div class="srch" style="flex:1;max-width:320px">
+            <span class="srch-ico">🔍</span>
+            <input class="srch-inp" type="text" id="m-srch"
+              placeholder="Rechercher des images…"
+              onkeydown="if(event.key==='Enter')searchMedia()">
+          </div>
+          <button class="btn g sm" onclick="searchMedia()">Chercher</button>
+        </div>
+
+        <!-- Zone upload -->
+        <div id="m-upload-zone" style="display:none;margin-bottom:12px">
+          <div class="m-upload"
+            onclick="document.getElementById('m-file').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+            ondragleave="this.style.borderColor=''"
+            ondrop="handleDrop(event)"
+            style="aspect-ratio:unset;height:120px">
+            📁
+            <span>Cliquer ou glisser une image</span>
+            <span style="font-size:10px;color:var(--ink4)">JPG, PNG, WebP · Max 5MB</span>
+          </div>
+          <input type="file" id="m-file" accept="image/*" style="display:none" onchange="handleUpload(this)">
+        </div>
+
+        <!-- Grille -->
+        <div class="media-grid" id="media-grid">
+          <div class="loading" style="grid-column:1/-1"><div class="spin"></div></div>
+        </div>
+      </div>
+
+      <!-- Panneau sélection sticky -->
+      <div style="position:sticky;top:0">
+        <div class="card" id="m-sel-pnl">
+          <div class="card-t">Image sélectionnée</div>
+
+          <!-- Preview -->
+          <div id="m-sel-prev" class="media-prev-box"
+            style="cursor:pointer" onclick="if(mSel) window.open(mSel,'_blank')">
+            Aucune image
+          </div>
+
+          <div class="vgap" style="margin-top:12px">
+            <div class="field">
+              <div class="lbl">ALT SEO</div>
+              <input class="inp" type="text" id="m-alt" placeholder="Description de l'image…">
+              <button class="btn g sm" style="margin-top:5px;width:100%" onclick="genMediaAlt()">✨ Générer ALT</button>
+            </div>
+            <div class="field">
+              <div class="lbl">URL</div>
+              <div style="display:flex;gap:5px">
+                <input class="inp" type="text" id="m-url" readonly
+                  style="font-family:var(--mono);font-size:11px;flex:1">
+                <button class="btn g sm" onclick="copyUrl()" title="Copier">⎘</button>
+              </div>
+            </div>
+            <button class="btn p" style="width:100%" onclick="useMedia()">
+              Utiliser dans l'article →
+            </button>
+          </div>
+        </div>
+
+        <!-- Info source -->
+        <div id="m-credit-card" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--ink3);line-height:1.6">
+          <div id="m-credit-txt"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+const DEMO_IMGS = [
+  'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400&q=80',
+  'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&q=80',
+  'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80',
+  'https://images.unsplash.com/photo-1552581234-26160f608093?w=400&q=80',
+  'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&q=80',
+  'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400&q=80',
+  'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=400&q=80',
+  'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=80',
+];
+
+let mSrc    = 'unsplash';
+let mSel    = null;
+let mCredit = '';
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => switchMSrc('unsplash'));
+
+// ── Source ────────────────────────────────────────────────────
+function switchMSrc(src) {
+  mSrc = src;
+  ['unsplash','pexels','upload'].forEach(s => {
+    const b = document.getElementById(`ms-${s}`);
+    if (b) b.style.cssText = s === src ? 'background:var(--accent);color:#fff' : '';
+  });
+  const uz = document.getElementById('m-upload-zone');
+  if (uz) uz.style.display = src === 'upload' ? '' : 'none';
+  if (src !== 'upload') searchMedia();
+}
+
+// ── Recherche ─────────────────────────────────────────────────
+async function searchMedia() {
+  const grid = document.getElementById('media-grid');
+  if (!grid) return;
+  const q = document.getElementById('m-srch')?.value || 'social media marketing';
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spin"></div></div>';
+
+  try {
+    const d      = await api('GET', `/api/photos?q=${encodeURIComponent(q)}&src=${mSrc}&per_page=18`);
+    const photos = d.photos || [];
+    const count  = document.getElementById('m-count');
+    if (count) count.textContent = photos.length ? `${photos.length} images` : '';
+
+    if (!photos.length) {
+      renderDemo(grid); return;
+    }
+    grid.innerHTML = photos.map(p => `
+      <div class="m-thumb ${mSel===p.url?'sel':''}"
+        onclick="selMedia('${esc(p.url)}','${esc(p.credit||'')}')"
+        title="${esc(p.credit||'')}">
+        <img src="${esc(p.thumb||p.url)}" alt="${esc(p.credit||'')}" loading="lazy">
+        <div class="m-check">✓</div>
+        <div class="m-credit">${esc(p.credit||'')}</div>
+      </div>`).join('');
+  } catch {
+    renderDemo(grid);
+  }
+}
+
+function renderDemo(grid) {
+  grid.innerHTML = DEMO_IMGS.map(url =>
+    `<div class="m-thumb ${mSel===url?'sel':''}" onclick="selMedia('${url}','')">
+      <img src="${url}" alt="" loading="lazy">
+      <div class="m-check">✓</div>
+    </div>`).join('');
+}
+
+// ── Sélection image ───────────────────────────────────────────
+function selMedia(url, credit) {
+  mSel    = url;
+  mCredit = credit || '';
+
+  // Mettre à jour la grille
+  document.querySelectorAll('#media-grid .m-thumb').forEach(t =>
+    t.classList.toggle('sel', t.querySelector('img')?.src === url || t.onclick?.toString().includes(url))
+  );
+
+  // Panneau sélection
+  const prev = document.getElementById('m-sel-prev');
+  if (prev) prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r)">`;
+  const urlEl = document.getElementById('m-url');
+  if (urlEl) urlEl.value = url;
+
+  // Crédit
+  const cc = document.getElementById('m-credit-card');
+  const ct = document.getElementById('m-credit-txt');
+  if (credit && cc && ct) {
+    ct.textContent = `📸 ${credit}`;
+    cc.style.display = '';
+  } else if (cc) {
+    cc.style.display = 'none';
+  }
+}
+
+// ── Upload ────────────────────────────────────────────────────
+function handleUpload(input) {
+  const f = input.files[0];
+  if (!f) return;
+  if (f.size > 5 * 1024 * 1024) return toast('Fichier trop lourd (max 5MB)', 'e');
+  const url = URL.createObjectURL(f);
+  selMedia(url, f.name);
+  toast(`📁 ${f.name} chargé !`);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const input = document.getElementById('m-file');
+    const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
+    handleUpload(input);
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────
+function copyUrl() {
+  const url = document.getElementById('m-url')?.value;
+  if (!url) return;
+  navigator.clipboard.writeText(url)
+    .then(() => toast('📋 URL copiée !'))
+    .catch(() => toast('Erreur copie', 'e'));
+}
+
+function useMedia() {
+  if (!mSel) return toast('Sélectionnez une image', 'i');
+  // Passer l'URL via sessionStorage vers new-article
+  try { sessionStorage.setItem('media-pick', mSel); } catch {}
+  window.location.href = '/new-article';
+}
+
+async function genMediaAlt() {
+  const q = document.getElementById('m-srch')?.value || 'Social Media Marketing';
+  try {
+    const r = await api('POST', '/api/agent', {
+      type: 'correcteur', title: q,
+      content: `Génère un texte ALT SEO de 80-120 caractères pour une image sur "${q}". En français. Texte uniquement.`
+    });
+    if (r.result) {
+      const el = document.getElementById('m-alt');
+      if (el) el.value = r.result.replace(/<[^>]+>/g,'').trim().substring(0,125);
+      toast('✅ ALT généré !');
+    }
+  } catch {}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Agents IA'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Agents IA'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Agents <span>IA</span></div>
+        <div class="sec-sub">15 agents SEO/GEO · Claude API</div>
+      </div>
+      <div id="ag-api-st" class="status-chip">⏳ Vérification…</div>
+    </div>
+
+    <!-- Sélecteur article + contexte -->
+    <div class="card" style="margin-bottom:16px;padding:14px">
+      <div class="card-t">Article à analyser</div>
+      <div class="g2">
+        <div class="field">
+          <div class="lbl">Sélectionner un article</div>
+          <select class="sel" id="ag-art-sel" onchange="loadAgArt()">
+            <option value="">-- Sélectionner --</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="lbl">Mot-clé libre</div>
+          <input class="inp" type="text" id="ag-kw" placeholder="ex: algorithme instagram 2026">
+        </div>
+        <div class="field gcol">
+          <div class="lbl">Contenu libre (optionnel)</div>
+          <textarea class="ta" id="ag-cnt"
+            style="min-height:60px;font-size:12px"
+            placeholder="Collez un texte à analyser…"></textarea>
+        </div>
+      </div>
+
+      <!-- Info article sélectionné -->
+      <div id="ag-art-info" style="display:none;margin-top:10px;padding:8px 12px;background:var(--surface);border-radius:var(--r);font-size:12px;color:var(--ink2)"></div>
+    </div>
+
+    <!-- Grille agents -->
+    <div class="g3" style="margin-bottom:16px" id="ag-grid">
+
+      <div class="card ag-card" onclick="runAgent('alignment')">
+        <div class="ag-ico">⚠️</div>
+        <div class="ag-name">Alignement SEO</div>
+        <div class="ag-desc">Intention mot-clé vs contenu</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('serp_psychology')">
+        <div class="ag-ico">📓</div>
+        <div class="ag-name">Psychologie SERP</div>
+        <div class="ag-desc">Analyse comportementale SERP</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('assistant_geo')">
+        <div class="ag-ico">🦾</div>
+        <div class="ag-name">Assistant G/SEO</div>
+        <div class="ag-desc">Audit SEO + GEO complet</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('content_gap')">
+        <div class="ag-ico">🪏</div>
+        <div class="ag-name">Content Gap</div>
+        <div class="ag-desc">Lacunes vs concurrents</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('eeat')">
+        <div class="ag-ico">🧑‍🔬</div>
+        <div class="ag-name">E-E-A-T</div>
+        <div class="ag-desc">Score /40 + recommandations</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('links')">
+        <div class="ag-ico">🔗</div>
+        <div class="ag-name">Maillage interne</div>
+        <div class="ag-desc">Cocon sémantique</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('qat')">
+        <div class="ag-ico">🫆</div>
+        <div class="ag-name">Audit QAT</div>
+        <div class="ag-desc">Quality · Accuracy · Transparency</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('chatgpt_expert')">
+        <div class="ag-ico">🤖</div>
+        <div class="ag-name">Expert ChatGPT</div>
+        <div class="ag-desc">Optimise pour les IA génératives</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('correcteur')">
+        <div class="ag-ico">✍️</div>
+        <div class="ag-name">Correcteur</div>
+        <div class="ag-desc">Grammaire · Style · Brand Voice</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('architecture_hn')">
+        <div class="ag-ico">🕸️</div>
+        <div class="ag-name">Structure Hn</div>
+        <div class="ag-desc">Architecture des titres H1/H2/H3</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('schema_org')">
+        <div class="ag-ico">⚙️</div>
+        <div class="ag-name">Schema.org</div>
+        <div class="ag-desc">Balisage structuré JSON-LD</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('fan_out')">
+        <div class="ag-ico">❓</div>
+        <div class="ag-name">FAQ / GEO</div>
+        <div class="ag-desc">Questions fréquentes Schema.org</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('actualites')">
+        <div class="ag-ico">📰</div>
+        <div class="ag-name">Actualités</div>
+        <div class="ag-desc">Rédiger depuis une source</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('meta_optimizer')">
+        <div class="ag-ico">🎯</div>
+        <div class="ag-name">Meta Optimizer</div>
+        <div class="ag-desc">Titre SEO + meta description</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+      <div class="card ag-card" onclick="runAgent('competitor')">
+        <div class="ag-ico">🔭</div>
+        <div class="ag-name">Analyse concurrents</div>
+        <div class="ag-desc">Positionnement vs concurrence</div>
+        <button class="btn g sm ag-btn">▶ Lancer</button>
+      </div>
+
+    </div>
+
+    <!-- Résultat -->
+    <div id="ag-res-wrap" style="display:none">
+      <div class="card">
+        <div class="card-t">
+          <span id="ag-res-ttl">Résultat</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn g sm" onclick="cpRes('ag-res-body')">📋 Copier</button>
+            <button class="btn g sm" onclick="document.getElementById('ag-res-wrap').style.display='none'">✕</button>
+          </div>
+        </div>
+        <div id="ag-res-body" class="result-body-lg"></div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<style>
+.ag-card {
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow .15s, transform .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ag-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); transform: translateY(-1px); }
+.ag-card.running { opacity: .7; pointer-events: none; }
+.ag-ico  { font-size: 22px; margin-bottom: 4px; }
+.ag-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.ag-desc { font-size: 11px; color: var(--ink3); flex: 1; }
+.ag-btn  { margin-top: 10px; width: 100%; }
+</style>
+<script>
+let agArt    = null;
+let agRunning = false;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Charger articles
+  try {
+    const d   = await api('GET', '/api/articles?limit=100');
+    const sel = document.getElementById('ag-art-sel');
+    d.articles.forEach(a => {
+      const o = document.createElement('option');
+      o.value       = a.id;
+      o.textContent = a.title.substring(0, 60);
+      sel.appendChild(o);
+    });
+  } catch {}
+
+  // Statut API
+  try {
+    const d  = await api('GET', '/api/agents');
+    const el = document.getElementById('ag-api-st');
+    if (el) {
+      el.textContent = d.anthropic_key ? '✅ Claude API connectée' : '⚠️ ANTHROPIC_API_KEY manquante';
+      el.style.color = d.anthropic_key ? 'var(--green)' : 'var(--yellow)';
+    }
+  } catch {}
+
+  // Pré-sélection via URL ?id=xxx
+  const id = new URLSearchParams(window.location.search).get('id');
+  if (id) {
+    const sel = document.getElementById('ag-art-sel');
+    if (sel) { sel.value = id; loadAgArt(); }
+  }
+});
+
+// ── Chargement article ────────────────────────────────────────
+async function loadAgArt() {
+  const id = document.getElementById('ag-art-sel').value;
+  const info = document.getElementById('ag-art-info');
+  if (!id) {
+    agArt = null;
+    if (info) info.style.display = 'none';
+    return;
+  }
+  try {
+    agArt = await api('GET', `/api/articles/${id}`);
+    if (info) {
+      info.style.display = '';
+      info.innerHTML = `
+        <strong>${esc(agArt.title)}</strong>
+        <span style="color:var(--ink4);margin:0 6px">·</span>
+        <span style="color:var(--ink3)">${esc(agArt.category_name||'')}</span>
+        <span style="color:var(--ink4);margin:0 6px">·</span>
+        <span style="color:var(--ink3);font-family:var(--mono)">
+          ${(agArt.content||'').replace(/<[^>]+>/g,' ').split(/\s+/).filter(Boolean).length} mots
+        </span>`;
+    }
+  } catch {}
+}
+
+// ── Lancer agent ──────────────────────────────────────────────
+async function runAgent(type) {
+  if (agRunning) return toast('Un agent est déjà en cours…', 'i');
+  agRunning = true;
+
+  const kw   = document.getElementById('ag-kw')?.value  || '';
+  const cc   = document.getElementById('ag-cnt')?.value || '';
+  const payload = {
+    type,
+    title:   agArt?.title   || kw || '',
+    keyword: kw || agArt?.title || '',
+    excerpt: agArt?.excerpt || '',
+    content: cc || agArt?.content || ''
+  };
+
+  // Marquer la carte active
+  const cards = document.querySelectorAll('.ag-card');
+  cards.forEach(c => {
+    if (c.getAttribute('onclick')?.includes(type)) c.classList.add('running');
+  });
+
+  const wrap = document.getElementById('ag-res-wrap');
+  const body = document.getElementById('ag-res-body');
+  const ttl  = document.getElementById('ag-res-ttl');
+  if (wrap) wrap.style.display = '';
+  if (body) body.innerHTML = `
+    <div class="loading">
+      <div class="spin"></div>
+      Claude analyse <strong>${type.toUpperCase()}</strong>…
+    </div>`;
+  if (ttl)  ttl.textContent = `${type.toUpperCase()} — Analyse en cours`;
+
+  // Scroll vers résultat
+  wrap?.scrollIntoView({behavior:'smooth', block:'start'});
+
+  try {
+    const r = await api('POST', '/api/agent', payload);
+    if (body) body.innerHTML = mdHtml(r.result || '');
+    if (ttl)  ttl.textContent = `${type.toUpperCase()} — Résultat`;
+    toast('Agent terminé ✅');
+  } catch(e) {
+    if (body) body.innerHTML = `<div style="color:var(--accent);padding:12px">❌ ${e.message}</div>`;
+  } finally {
+    agRunning = false;
+    cards.forEach(c => c.classList.remove('running'));
+  }
+}
+</script>
+</body>
+</html>
