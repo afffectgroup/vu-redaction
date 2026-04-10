@@ -1,14 +1,14 @@
 // ============================================================
-//  StephSEO — server.js v2
+//  VU Rédaction — server.js v2.1
 //  Back-office éditorial VU Magazine
-//  Connecté à la même DB PostgreSQL que VU Magazine
-//  + Veille : NewsAPI + Apify LinkedIn
-// ============================================================
-
-//  StephSEO — server.js v2
-//  Back-office éditorial VU Magazine
-//  Connecté à la même DB PostgreSQL que VU Magazine
-//  + Veille : NewsAPI + Apify LinkedIn
+//  Corrections v2.1 :
+//    - Token Webflow → variable d'environnement uniquement
+//    - Model Claude corrigé (claude-sonnet-4-6)
+//    - CREATE TABLE IF NOT EXISTS déplacé au démarrage
+//    - LinkedIn scrape réécrit avec vrai POST Apify
+//    - Routes CRUD Ticker ajoutées
+//    - /api/fix-db protégé par secret header
+//    - DELETE articles → soft delete (status='archived')
 // ============================================================
 
 const express = require('express');
@@ -19,20 +19,79 @@ const { Pool } = require('pg');
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// Variables Railway à configurer :
-// DATABASE_URL, NEWS_API_KEY, APIFY_TOKEN
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('railway') ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' || process.env.DATABASE_URL?.includes('railway')
+    ? { rejectUnauthorized: false }
+    : false
 });
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Initialisation DB au démarrage ───────────────────────────
+// FIX: CREATE TABLE déplacé ici — exécuté une seule fois au boot
+async function initDB() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS glossary_terms (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        slug VARCHAR(200) UNIQUE,
+        definition TEXT NOT NULL,
+        example TEXT,
+        platforms TEXT[],
+        related_terms TEXT[],
+        article_slug VARCHAR(200),
+        letter CHAR(1),
+        status VARCHAR(20) DEFAULT 'published',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS partners (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        slug VARCHAR(200) UNIQUE,
+        category VARCHAR(100),
+        description TEXT,
+        long_description TEXT,
+        logo_url VARCHAR(500),
+        affiliate_url VARCHAR(500),
+        website_url VARCHAR(500),
+        rating DECIMAL(3,1),
+        pros TEXT[],
+        cons TEXT[],
+        pricing JSONB,
+        badge VARCHAR(50) DEFAULT 'Affilié',
+        tags TEXT[],
+        status VARCHAR(20) DEFAULT 'published',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ticker_items (
+        id SERIAL PRIMARY KEY,
+        category VARCHAR(100) NOT NULL,
+        color VARCHAR(20) DEFAULT '#888',
+        title VARCHAR(300) NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    console.log('✅ DB initialisée');
+  } catch(e) {
+    console.error('❌ initDB error:', e.message);
+  }
+}
+
 // ── Favicon / PWA ────────────────────────────────────────────
 app.get('/favicon.ico', (req, res) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0A0A0A"/><text x="16" y="22" text-anchor="middle" fill="#E63946" font-family="serif" font-size="18" font-weight="bold">S</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0A0A0A"/><text x="16" y="22" text-anchor="middle" fill="#C8303C" font-family="serif" font-size="18" font-weight="bold">V</text></svg>`;
   res.header('Content-Type', 'image/svg+xml');
   res.send(svg);
 });
@@ -41,7 +100,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ── Helper HTTP ──────────────────────────────────────────────
+// ── Helper HTTP GET ──────────────────────────────────────────
 function httpGet(url, headers = {}) {
   return new Promise((resolve, reject) => {
     const req = https.request(url, { method: 'GET', headers }, res => {
@@ -54,6 +113,35 @@ function httpGet(url, headers = {}) {
     });
     req.on('error', reject);
     req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
+    req.end();
+  });
+}
+
+// ── Helper HTTP POST ─────────────────────────────────────────
+function httpPost(url, body, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = JSON.stringify(body);
+    const urlObj = new URL(url);
+    const req = https.request({
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(bodyStr),
+        ...headers
+      }
+    }, res => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+        catch(e) { resolve({ status: res.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(20000, () => { req.destroy(); reject(new Error('Timeout POST')); });
+    req.write(bodyStr);
     req.end();
   });
 }
@@ -185,10 +273,15 @@ app.put('/api/articles/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// FIX: soft delete — passe en status='archived' au lieu de supprimer définitivement
 app.delete('/api/articles/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM articles WHERE id = $1', [req.params.id]);
-    res.json({ ok: true });
+    const { rows: [article] } = await pool.query(
+      `UPDATE articles SET status='archived', updated_at=NOW() WHERE id=$1 RETURNING id, title`,
+      [req.params.id]
+    );
+    if (!article) return res.status(404).json({ error: 'Article non trouvé' });
+    res.json({ ok: true, archived: article });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -225,15 +318,7 @@ app.get('/api/authors', async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 app.get('/api/glossary', async (req, res) => {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS glossary_terms (
-        id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, slug VARCHAR(200) UNIQUE,
-        definition TEXT NOT NULL, example TEXT, platforms TEXT[], related_terms TEXT[],
-        article_slug VARCHAR(200), letter CHAR(1),
-        status VARCHAR(20) DEFAULT 'published',
-        created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
+    // FIX: CREATE TABLE retiré — géré dans initDB() au démarrage
     const { rows } = await pool.query('SELECT * FROM glossary_terms ORDER BY letter, name');
     res.json(rows);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -277,17 +362,7 @@ app.delete('/api/glossary/:id', async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 app.get('/api/partners', async (req, res) => {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS partners (
-        id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, slug VARCHAR(200) UNIQUE,
-        category VARCHAR(100), description TEXT, long_description TEXT,
-        logo_url VARCHAR(500), affiliate_url VARCHAR(500), website_url VARCHAR(500),
-        rating DECIMAL(3,1), pros TEXT[], cons TEXT[], pricing JSONB,
-        badge VARCHAR(50) DEFAULT 'Affilié', tags TEXT[],
-        status VARCHAR(20) DEFAULT 'published',
-        created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
+    // FIX: CREATE TABLE retiré — géré dans initDB() au démarrage
     const { rows } = await pool.query('SELECT * FROM partners ORDER BY name');
     res.json(rows);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -331,12 +406,72 @@ app.delete('/api/partners/:id', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
+//  API TICKER — NOUVEAU
+// ══════════════════════════════════════════════════════════════
+app.get('/api/ticker', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM ticker_items ORDER BY sort_order, id'
+    );
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/ticker', async (req, res) => {
+  try {
+    const { category, color = '#888', title, is_active = true, sort_order = 0 } = req.body;
+    if (!category || !title) return res.status(400).json({ error: 'category et title requis' });
+    const { rows: [item] } = await pool.query(`
+      INSERT INTO ticker_items (category, color, title, is_active, sort_order)
+      VALUES ($1,$2,$3,$4,$5) RETURNING *
+    `, [category, color, title, is_active, sort_order]);
+    res.json(item);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/ticker/:id', async (req, res) => {
+  try {
+    const { category, color, title, is_active, sort_order } = req.body;
+    const { rows: [item] } = await pool.query(`
+      UPDATE ticker_items SET
+        category=COALESCE($1, category),
+        color=COALESCE($2, color),
+        title=COALESCE($3, title),
+        is_active=COALESCE($4, is_active),
+        sort_order=COALESCE($5, sort_order),
+        updated_at=NOW()
+      WHERE id=$6 RETURNING *
+    `, [category, color, title, is_active, sort_order, req.params.id]);
+    if (!item) return res.status(404).json({ error: 'Item non trouvé' });
+    res.json(item);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/ticker/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM ticker_items WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Réordonner le ticker en bulk
+app.put('/api/ticker', async (req, res) => {
+  try {
+    const { items } = req.body; // [{ id, sort_order }]
+    if (!Array.isArray(items)) return res.status(400).json({ error: 'items[] requis' });
+    for (const item of items) {
+      await pool.query('UPDATE ticker_items SET sort_order=$1, updated_at=NOW() WHERE id=$2', [item.sort_order, item.id]);
+    }
+    res.json({ ok: true, updated: items.length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
 //  API VEILLE — NewsAPI
 // ══════════════════════════════════════════════════════════════
 app.get('/api/news', async (req, res) => {
   const API_KEY = process.env.NEWS_API_KEY;
   if (!API_KEY) {
-    // Fallback mode : données de démo
     return res.json({ articles: DEMO_NEWS, demo: true });
   }
 
@@ -372,12 +507,10 @@ app.get('/api/news', async (req, res) => {
     }
   }
 
-  // Trier par date décroissante
   results.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   res.json({ articles: results.slice(0, 30) });
 });
 
-// ── Démo data si pas de clé NewsAPI ─────────────────────────
 const DEMO_NEWS = [
   { title: "Instagram teste une nouvelle interface pour les Reels", source: "Social Media Today", publishedAt: new Date().toISOString(), description: "Meta expérimente une refonte complète de l'interface Reels pour améliorer l'engagement.", url: "#", query: "demo" },
   { title: "TikTok : l'algorithme favorise désormais les vidéos de moins de 30 secondes", source: "Le Journal du CM", publishedAt: new Date(Date.now()-86400000).toISOString(), description: "Analyse des nouvelles données de performance sur TikTok en 2026.", url: "#", query: "demo" },
@@ -389,6 +522,7 @@ const DEMO_NEWS = [
 // ══════════════════════════════════════════════════════════════
 //  API VEILLE — Apify LinkedIn
 // ══════════════════════════════════════════════════════════════
+// FIX: réécriture complète avec vrai POST Apify + attente du dataset
 app.post('/api/linkedin-scrape', async (req, res) => {
   const APIFY_TOKEN = process.env.APIFY_TOKEN;
   if (!APIFY_TOKEN) {
@@ -398,27 +532,68 @@ app.post('/api/linkedin-scrape', async (req, res) => {
   const { keywords = 'Social Media réseaux sociaux', limit = 10 } = req.body;
 
   try {
-    // 1. Lancer le run Apify
-    const runRes = await httpGet(
-      `https://api.apify.com/v2/acts/curious_coder~linkedin-post-search-scraper/runs?token=${APIFY_TOKEN}`,
-      {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${APIFY_TOKEN}`,
-      }
+    // 1. Lancer le run Apify (POST avec body)
+    const runResponse = await httpPost(
+      `https://api.apify.com/v2/acts/curious_coder~linkedin-post-search-scraper/runs`,
+      { keyword: keywords, maxResults: limit },
+      { 'Authorization': `Bearer ${APIFY_TOKEN}` }
     );
 
-    // Note : pour POST on doit utiliser une vraie req POST — simplification ici
-    return res.json({
-      message: 'Apify LinkedIn scraping configuré. Utilisez le token dans Railway.',
-      demo: false,
-      hint: 'Branchez APIFY_TOKEN dans les variables Railway pour activer le scraping.'
-    });
+    if (runResponse.status !== 201 && runResponse.status !== 200) {
+      return res.status(502).json({
+        error: `Apify run failed: HTTP ${runResponse.status}`,
+        detail: typeof runResponse.body === 'string' ? runResponse.body.slice(0, 200) : runResponse.body
+      });
+    }
+
+    const runId = runResponse.body?.data?.id;
+    if (!runId) {
+      return res.status(502).json({ error: 'Apify run ID manquant dans la réponse', body: runResponse.body });
+    }
+
+    // 2. Attendre la fin du run (polling toutes les 3s, max 60s)
+    let attempts = 0;
+    let runStatus = 'RUNNING';
+    let datasetId = null;
+
+    while (attempts < 20 && runStatus !== 'SUCCEEDED' && runStatus !== 'FAILED') {
+      await new Promise(r => setTimeout(r, 3000));
+      const statusRes = await httpGet(
+        `https://api.apify.com/v2/actor-runs/${runId}`,
+        { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+      );
+      runStatus = statusRes.body?.data?.status || 'UNKNOWN';
+      datasetId = statusRes.body?.data?.defaultDatasetId;
+      attempts++;
+    }
+
+    if (runStatus !== 'SUCCEEDED' || !datasetId) {
+      return res.status(504).json({ error: `Apify run ${runStatus} après ${attempts} tentatives` });
+    }
+
+    // 3. Récupérer les items du dataset
+    const dataRes = await httpGet(
+      `https://api.apify.com/v2/datasets/${datasetId}/items?limit=${limit}`,
+      { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+    );
+
+    const items = Array.isArray(dataRes.body) ? dataRes.body : (dataRes.body?.items || []);
+    const posts = items.map(item => ({
+      author: item.authorName || item.author || 'Auteur inconnu',
+      text: item.text || item.content || '',
+      likes: item.likesCount || item.likes || 0,
+      comments: item.commentsCount || item.comments || 0,
+      publishedAt: item.postedAt || item.publishedAt || new Date().toISOString(),
+      url: item.url || '',
+    }));
+
+    res.json({ posts, demo: false, runId, total: posts.length });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    console.error('Apify error:', e.message);
+    res.status(500).json({ error: e.message, posts: DEMO_LINKEDIN, demo: true });
   }
 });
 
-// ── Démo LinkedIn ────────────────────────────────────────────
 const DEMO_LINKEDIN = [
   { author: "Stéphanie Jouin", text: "La portée organique Instagram a chuté de -42% en 2026. Voici comment on s'y adapte chez nos clients...", likes: 847, comments: 63, publishedAt: new Date().toISOString() },
   { author: "Alice Cathelineau", text: "Personal branding en 2026 : pourquoi votre storytelling sur LinkedIn prime sur les statistiques...", likes: 512, comments: 41, publishedAt: new Date(Date.now()-86400000).toISOString() },
@@ -426,19 +601,10 @@ const DEMO_LINKEDIN = [
 ];
 
 // ══════════════════════════════════════════════════════════════
-//  START
-// ══════════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════════
-//  AGENT PROMPTS — StephSEO v2
-//  Adaptés pour VU Magazine · [Marque] = VU Magazine · [site.com] = vu-magazine.com
+//  AGENTS IA — PROMPTS
 // ══════════════════════════════════════════════════════════════
 
 const AGENT_PROMPTS = {
-
-// ──────────────────────────────────────────────────────────────
-// GROUPE 1 : ASSISTANT ÉDITORIAL
-// ──────────────────────────────────────────────────────────────
 
 alignment: `Tu es un Expert Stratégiste SEO spécialisé dans l'alignement Intention de Recherche / Contenu.
 
@@ -481,8 +647,6 @@ Compare les deux.
 
 Ton : professionnel, clair, orienté résultat. Contexte : VU Magazine est le média Social Media de référence en France, audience = professionnels du digital francophones.`,
 
-// ──────────────────────────────────────────────────────────────
-
 serp_psychology: `Tu es un Expert Stratégiste SEO spécialisé dans l'analyse comportementale des SERP.
 
 Ta mission : définir précisément l'angle d'attaque éditorial pour le mot-clé donné, au-delà des catégories classiques info/transac.
@@ -511,8 +675,6 @@ VU Magazine est le média Social Media de référence France avec Stéphanie Jou
 
 Règle d'or : si la SERP est saturée par des géants, propose un angle Niche/Expertise plutôt que d'imiter les leaders.`,
 
-// ──────────────────────────────────────────────────────────────
-
 assistant_geo: `Tu es un Agent IA senior en stratégie éditoriale SEO + GEO, spécialiste :
 - de l'analyse concurrentielle Google (SEO),
 - de l'optimisation de citabilité dans ChatGPT / moteurs génératifs (GEO),
@@ -521,8 +683,7 @@ assistant_geo: `Tu es un Agent IA senior en stratégie éditoriale SEO + GEO, sp
 Ton objectif : analyser le contenu VU Magazine fourni et recommander comment l'améliorer pour mieux se positionner sur Google ET être mieux cité dans les réponses ChatGPT/Perplexity/Claude.
 
 ## CONTEXTE VU MAGAZINE
-- Marque : VU Magazine
-- Site : vu-magazine.com
+- Marque : VU Magazine · Site : vu-magazine.com
 - Positionnement : média Social Media de référence en France
 - Auteure principale : Stéphanie Jouin, experte Social Media 12+ ans
 - Audience : community managers, social media managers, entrepreneurs, agences FR
@@ -535,60 +696,20 @@ Ton objectif : analyser le contenu VU Magazine fourni et recommander comment l'a
 - Si mismatch : alerte ⚠️ avec explication et 2 options
 
 ### Étape 1 — État des lieux (SEO + GEO)
-**SEO :**
-- Position estimée de VU Magazine sur ce sujet (estimation basée sur la structure du contenu)
-- Concurrents probables en Top 3 SERP
-
-**GEO (IA génératives) :**
-- VU Magazine serait-il cité par ChatGPT sur ce sujet ? Pourquoi ?
-- Quelles sources lui sont probablement préférées ?
+**SEO :** Position estimée · Concurrents probables en Top 3 SERP
+**GEO :** VU Magazine serait-il cité par ChatGPT sur ce sujet ? Pourquoi ?
 
 ### Étape 2 — Analyse comparative approfondie
-Compare le contenu actuel aux standards des contenus qui performent SEO + GEO :
-
-1️⃣ **Angle éditorial** — Expert / Guide / Actualité / Comparatif — à renforcer ou changer ?
-2️⃣ **Structure Hn** — Sections typiques manquantes vs concurrents performants
-3️⃣ **Profondeur technique** — Chiffres, données, explications méthodologiques, cas concrets
-4️⃣ **Éléments enrichis GEO-first** — TL;DR / Tableaux comparatifs / Listes à puces / FAQ / Encadrés alertes / Données structurées
-5️⃣ **UX éditoriale** — Paragraphes trop longs/denses ? Scannabilité suffisante ?
-6️⃣ **Introduction** — Répond-elle immédiatement à l'intention ? Donne-t-elle un bénéfice clair ?
-7️⃣ **Signaux SEO sémantiques** — Couverture du keyword et variantes, maillage pertinent
+1️⃣ Angle éditorial · 2️⃣ Structure Hn · 3️⃣ Profondeur technique · 4️⃣ Éléments enrichis GEO-first · 5️⃣ UX éditoriale · 6️⃣ Introduction · 7️⃣ Signaux SEO sémantiques
 
 ## FORMAT DE RÉPONSE
 
 ## 🎯 Objectif
-Renforcer la visibilité de VU Magazine dans les citations IA ET sur Google.
-
-## 📊 État des lieux
-### SEO
-- Position estimée : X · Concurrents probables : A, B, C
-### GEO
-- Probabilité de citation IA : [Faible/Moyenne/Haute] · Raison principale
-
+## 📊 État des lieux (SEO + GEO)
 ## 🔍 Lacunes identifiées
-[Analyse structurée des 7 dimensions]
-
 ## 🩺 Diagnostic
-**Points forts :** ...
-**Lacunes majeures :** ...
-
-## 🚀 Recommandations priorisées
-
-Pour chaque recommandation :
-- 🎯 Nom + Badge **[GEO]** ou **[SEO]** ou **[Les deux]**
-- Pourquoi c'est prioritaire (argument comparatif)
-- Action concrète
-- **Avant :** "[texte actuel]" → **Après :** "[texte optimisé]"
-
-## 🧩 Synthèse
-- Top 3 priorités GEO
-- Top 3 priorités SEO  
-- Quick wins immédiats
-- Plan pour viser #1 IA + Top 3 Google`,
-
-// ──────────────────────────────────────────────────────────────
-// GROUPE 2 : STRUCTURE SEO
-// ──────────────────────────────────────────────────────────────
+## 🚀 Recommandations priorisées (Avant/Après)
+## 🧩 Synthèse`,
 
 content_gap: `Tu es un Expert Senior en Stratégie de Contenu et SEO. Ta mission : réaliser une analyse "Information Gap" pour identifier précisément ce que les meilleurs contenus sur ce sujet apportent que l'article VU Magazine ne possède pas encore.
 
@@ -600,36 +721,12 @@ content_gap: `Tu es un Expert Senior en Stratégie de Contenu et SEO. Ta mission
 ## STRUCTURE DE RÉPONSE OBLIGATOIRE
 
 ### 🛡️ Bloc 1 : Idées & Concepts manquants
-Thématiques, arguments d'experts, conseils pratiques ou angles absents de l'article.
-- **[Idée]** : Description précise + pourquoi c'est attendu pour ce sujet
-
 ### 📊 Bloc 2 : Statistiques & Données chiffrées manquantes
-Quels types de données chiffrées renforcerait la crédibilité et le positionnement GEO ?
-- **[Data attendue]** : Quel indicateur / quelle étude serait naturellement incluse dans un article performant sur ce sujet
-
 ### 🎨 Bloc 3 : Formats & Éléments Structurants manquants
-Formats typiques des contenus qui performent sur ce sujet : TL;DR, tableaux comparatifs, listes à puces, FAQ, encadrés alertes, données Schema.org...
-- **[Format]** : Impact attendu (SEO / GEO / UX)
-
 ### 📐 Bloc 4 : Structure Hn manquante
-Sections H2/H3 typiques sur ce sujet qui manquent ou sont insuffisamment développées dans l'article actuel.
-
 ### 🔗 Bloc 5 : Maillage & Signaux E-E-A-T manquants
-- Sources autoritaires à citer (rapports officiels, études plateformes, experts nommés)
-- Pages internes vu-magazine.com à mentionner/lier
-- Données propriétaires VU Magazine exploitables (benchmarks, panels...)
 
----
-
-**Voulez-vous que j'aide à intégrer ces améliorations ?**
-Si oui, pour chaque lacune majeure, je fournirai un bloc **Avant / Après** avec le texte exact à ajouter.
-
-Règles :
-- Sois très spécifique : pas "ajouter des données", mais "ajouter une statistique sur le taux d'engagement moyen Instagram 2026 pour les comptes de 10K-100K abonnés"
-- Ne mentionne pas les points déjà bien traités
-- Préserve la voix VU Magazine (experte, directe, ancrée Social Media France)`,
-
-// ──────────────────────────────────────────────────────────────
+Règles : sois très spécifique. Ne mentionne pas les points déjà bien traités. Préserve la voix VU Magazine.`,
 
 cocon: `Tu es un Expert SEO Senior spécialisé en architecture de contenus et cocons sémantiques.
 
@@ -640,56 +737,13 @@ Ta mission : générer un cocon sémantique complet et structuré pour VU Magazi
 - Catégories existantes : Instagram, TikTok, LinkedIn, Facebook, YouTube, X, Snapchat, Pinterest, Interviews
 - Objectif : couvrir les sujets Social Media de façon exhaustive pour dominer les SERP FR
 
-## OBJECTIF
-Générer un cocon sémantique hiérarchisé en pyramide d'intentions :
-- **Page mère** : mot-clé large, le plus souvent informatif/éditorial (VU Magazine = média, pas e-commerce)
-- **Pages filles** : sous-thèmes majeurs (considération, approfondissement)
-- **Pages petites-filles** : sujets spécifiques (informationnels, tutoriels, définitions, actualités)
-
 ## ÉTAPES
-
 ### 0. Test de largeur thématique
-Le mot-clé est-il assez large pour être une page pilier de VU Magazine ? Ou est-ce déjà une page fille ?
-- Si trop restreint : identifie le sujet parent plus large et repositionne le mot-clé
-- Si assez large : construis directement
-
 ### 1. Analyse sémantique
-- Intention dominante sur ce sujet (éditorial / informatif / comparatif)
-- Entités principales (plateformes, outils, concepts, acteurs)
-- Opportunités SEO pour un média Social Media France
-
-### 2. Architecture du cocon
-
-#### Page mère
-- 1 article pilier · thématique large · positionnement autorité VU Magazine
-
-#### Pages filles (3-7 pages)
-- Sous-thèmes majeurs · angle comparaison / choix / approfondissement
-- Types de sujets : "comment choisir...", "meilleures pratiques...", "comparaison..."
-
-#### Pages petites-filles (3-8 pages par fille)
-- Sujets spécifiques · définitions · guides pratiques · tutoriels · FAQ
-- Actualités récurrentes liées au sujet
-
+### 2. Architecture du cocon (Page mère → Filles → Petites-filles)
 ### 3. Tableau de mapping
-Pour chaque page :
-| Niveau | Titre suggéré | Mot-clé principal | Intention |
-|---|---|---|---|
-
 ### 4. Maillage interne
-- Descendant (pilier → filles → petites-filles)
-- Remontant (petites-filles → filles → pilier)
-- Horizontal (entre sœurs d'un même silo uniquement)
-- Ancres : 60% longue traîne, 30% sémantique proche, 10% exact match
-
-### 5. Planning éditorial
-- Ordre de publication recommandé (pilier en premier, puis filles, puis petites-filles)
-- Quick wins (sujets à faible concurrence mais forte pertinence VU Magazine)
-- Priorisation selon l'actualité Social Media 2025/2026
-
-Ton : expert SEO, pédagogue, orienté performance éditoriale pour un média.`,
-
-// ──────────────────────────────────────────────────────────────
+### 5. Planning éditorial`,
 
 eeat: `Tu es un expert senior en stratégie éditoriale SEO et en évaluation E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) selon les standards Google.
 
@@ -699,569 +753,138 @@ Analyse le contenu VU Magazine fourni sur chacune des 4 dimensions E-E-A-T (/10)
 - Marque : VU Magazine · Media Social Media France
 - Auteurs : Stéphanie Jouin (rédactrice en chef), Alice Cathelineau, Cassandre Huguet
 - Positionnement : expertise terrain, données propriétaires (benchmarks), ancrage France
-- Voix éditoriale : experte, directe, factuelle, accessible aux professionnels
 
 ## GRILLE D'ÉVALUATION E-E-A-T
-
-### 1. EXPERIENCE /10
-- Y a-t-il des exemples concrets, cas réels, retours de terrain Social Media ?
-- Le contenu reflète-t-il une connaissance pratique (pas théorique) du Social Media ?
-- Y a-t-il de la nuance et des insights issus d'une vraie expérience terrain France ?
-- Points vérifiés : exemples spécifiques / cas clients / anecdotes professionnelles / données terrain
-
-### 2. EXPERTISE /10
-- Le contenu démontre-t-il une expertise approfondie du sujet traité ?
-- Les détails sont-ils précis, exacts et actualisés (données 2025/2026) ?
-- La terminologie Social Media est-elle utilisée correctement et avec profondeur ?
-- Points vérifiés : profondeur technique / chiffres précis / références actualisées / nuances sectorielles
-
-### 3. AUTHORITATIVENESS /10
-- VU Magazine est-il positionné comme autorité sur ce sujet spécifique ?
-- Des sources crédibles sont-elles citées (plateformes elles-mêmes, études officielles) ?
-- Le contenu positionne-t-il VU Magazine comme voix de référence Social Media France ?
-- Points vérifiés : citations de sources autoritaires / données propriétaires valorisées / posture experte
-
-### 4. TRUSTWORTHINESS /10
-- Les informations sont-elles vérifiables et sourcées (dates, liens, études) ?
-- La transparence est-elle assurée (auteur identifié, date de publication, sources citées) ?
-- Le ton est-il objectif plutôt que purement promotionnel ?
-- Points vérifiés : sources explicites / date visible / auteur identifié / équilibre conseil/promo
+### 1. EXPERIENCE /10 · 2. EXPERTISE /10 · 3. AUTHORITATIVENESS /10 · 4. TRUSTWORTHINESS /10
 
 ## FORMAT DE RÉPONSE
-
 **Note Globale E-E-A-T :** /40
-
-| Dimension | Note | Points Forts | Points Faibles Principaux |
-|:---|:---|:---|:---|
-| Experience | /10 | | |
-| Expertise | /10 | | |
-| Authoritativeness | /10 | | |
-| Trustworthiness | /10 | | |
-
-**Plan d'action prioritaire :**
-Pour chaque recommandation (max 5, par ordre de priorité) :
-> **Avant :** "[texte actuel ou manque identifié]"
-> **Après :** "[texte optimisé E-E-A-T avec source/donnée/exemple]"
-> *Dimension renforcée : Experience / Expertise / Authority / Trust*
-
-Règle absolue : préserve la voix éditoriale de VU Magazine (experte, directe, ancrée terrain Social Media France). Les recommandations doivent être immédiatement applicables.`,
-
-// ──────────────────────────────────────────────────────────────
+Tableau + Plan d'action prioritaire (max 5 recommandations avec Avant/Après)`,
 
 links: `Tu es un Stratège SEO Senior spécialisé en Architecture de l'Information et maillage interne (cocon sémantique).
 
 Ta mission : analyser le contenu VU Magazine fourni et recommander le maillage interne optimal.
 
 ## CONTEXTE VU MAGAZINE
-- Site : vu-magazine.com · Structure : /blog/{slug} pour les articles, /categories/{slug} pour les catégories
+- Structure : /blog/{slug}, /categories/{slug}, /glossaire, /partenaires, /auteurs/{slug}
 - Catégories : instagram, tiktok, linkedin, facebook, youtube, x-twitter, snapchat, pinterest, interviews
-- Glossaire : /glossaire · Partenaires : /partenaires · À propos : /media
-- Auteurs : /auteurs/stephanie-jouin, /auteurs/alice-cathelineau, /auteurs/cassandre-huguet
 
-## WORKFLOW D'ANALYSE
-
-### PHASE 1 : TOPOLOGIE DE LA PAGE
-1. Identifie le Focus Keyword et la thématique principale
-2. Détermine le niveau de cocon :
-   - **Page Mère** : thématique large (ex: "algorithme Instagram")
-   - **Page Fille** : sous-thème (ex: "taux d'engagement Instagram 2026")
-   - **Page Petite-Fille** : très spécifique (ex: "comment calculer son taux d'engagement Instagram")
-
-3. Règles de maillage selon le niveau :
-   - **Page Mère** → liens vers pages Filles (plus spécifiques) uniquement
-   - **Page Fille** → liens vers Page Mère + Pages Sœurs (thématique proche)
-   - **Page Petite-Fille** → lien vers Page Fille supérieure + Sœurs de même niveau
-
-4. Audit des liens existants : liste les liens internes déjà présents dans le contenu
-
-### PHASE 2 : OPPORTUNITÉS DE MAILLAGE
-Identifie 5-7 opportunités de liens internes sur vu-magazine.com :
-- Articles de blog connexes (/blog/...)
-- Pages de catégorie liées (/categories/...)
-- Glossaire si pertinent (/glossaire)
-- Page partenaire si l'article parle d'un outil (/partenaires/...)
-
-### PHASE 3 : SCORING
-- **5/5 Vital** : lien hiérarchique direct (remontée vers page mère ou descente vers fille clé)
-- **4/5 Fort** : page sœur très proche sémantiquement
-- **3/5 Moyen** : lien connexe utile pour le lecteur
-- **1-2/5 Faible** : à exclure
-
-Ne propose que les liens scorés 4 ou 5.
-
-### PHASE 4 : GAP ANALYSIS
-Quels sous-sujets devraient avoir un article dédié sur vu-magazine.com mais n'en ont pas encore ? (2-3 suggestions)
-
-## FORMAT DE RÉPONSE
-
-### Rapport Stratégique
-- **Niveau de cocon :** Mère / Fille / Petite-Fille + justification
-- **Liens existants :** liste rapide
-- **Gap Analysis :** 2-3 sujets à créer pour l'autorité thématique
-
-### Liens Sortants à créer (Score 4-5 uniquement)
-Pour chaque lien :
-- Score /5 + raison
-- URL cible : /blog/SLUG ou /categories/SLUG ou /glossaire
-- Ancre recommandée (longue traîne de préférence)
-- Bloc d'insertion :
-  > **Texte actuel :** "[phrase du contenu]"
-  > **Texte avec lien :** "[phrase avec <a href='/blog/slug'>ancre optimisée</a>]"
-
-### Liens Entrants suggérés
-Depuis quels articles existants de vu-magazine.com faudrait-il ajouter un lien vers cet article ? Avec le paragraphe naturel à insérer (sans CTA artificiel, sans "découvrez/consultez").
-
-Ton : expert SEO, pédagogue, orienté ROI éditorial.`,
-
-// ──────────────────────────────────────────────────────────────
+## WORKFLOW
+### PHASE 1 : Topologie (niveau cocon : Mère/Fille/Petite-Fille)
+### PHASE 2 : Opportunités de maillage (5-7 liens)
+### PHASE 3 : Scoring (5/5 Vital → 1/5 Faible) — ne proposer que 4-5/5
+### PHASE 4 : Gap Analysis (sujets manquants sur vu-magazine.com)`,
 
 maillage_entrants: `Tu es l'Expert en Maillage Interne Stratégique de VU Magazine.
 
-Ta mission : identifier des opportunités de liens entrants depuis d'autres articles vu-magazine.com vers l'article fourni (la "Page Cible"), pour renforcer son autorité dans le cocon sémantique.
+Ta mission : identifier des opportunités de liens entrants depuis d'autres articles vu-magazine.com vers l'article fourni.
 
-## CONTEXTE
-- Site : vu-magazine.com · Articles sous /blog/{slug}
-- Catégories : instagram, tiktok, linkedin, facebook, youtube, x-twitter
-- Cocon Social Media France : nombreux articles publiés par Stéphanie Jouin, Alice Cathelineau, Cassandre Huguet
-
-## PROTOCOLE D'ANALYSE
-
+## PROTOCOLE
 ### 1. Analyse de la Page Cible
-- Mot-clé focus et intention de recherche
-- Thématique principale (plateforme, sujet, niveau : mère/fille/petite-fille)
-
-### 2. Identification des Pages Sources pertinentes
-Cherche 3-5 articles vu-magazine.com qui pourraient naturellement lier vers la Page Cible :
-- **Pages Mères** (thématique plus large) → lien descendant
-- **Pages Sœurs** (thématique proche, même plateforme) → lien transversal
-- **Pages Filles** (plus spécifiques) → lien remontant
-
-### 3. Règles de maillage sémantique
-- L'ancre = mot-clé focus ou variante proche
-- Aucun CTA artificiel ("découvrez", "consultez", "explorez")
-- Le lien s'intègre naturellement dans le flux de lecture
-- Le paragraphe apporte une information complémentaire réelle
-
-## FORMAT DE RÉPONSE OBLIGATOIRE
-
-Pour chaque recommandation de lien entrant :
-
-### Recommandation #[N]
-- **Type de relation :** [ex: page sœur → page sœur / page fille → page mère]
-- **URL de la page source :** /blog/SLUG-A-TROUVER
-- **Titre probable de la page source :** [suggestion basée sur la thématique]
-- **Emplacement suggéré :** [ex: "Après le 2ème paragraphe" ou "À la fin de la section H2 sur X"]
-- **Paragraphe à insérer :**
-> [30-50 mots qui s'intègrent naturellement, avec le lien HTML :
-> La portée organique sur les Reels a <a href="/blog/SLUG-CIBLE">chuté de 42% en 2026 pour les comptes professionnels</a>, selon les benchmarks VU Magazine.]
-
-**À faire :** Rédige des paragraphes qui apportent de la valeur (contexte, chiffre, nuance) — pas des phrases de transition.
-**À éviter :** "Pour en savoir plus sur X, consultez notre article Y."
-
-Préserve la voix VU Magazine dans chaque paragraphe.`,
-
-// ──────────────────────────────────────────────────────────────
+### 2. Identification des Pages Sources (3-5 articles)
+### 3. Règles : ancre = mot-clé focus, aucun CTA artificiel, lien naturel dans le flux
+### 4. Pour chaque recommandation : type de relation, URL source, emplacement, paragraphe à insérer (30-50 mots)`,
 
 schema_org: `Tu es un Expert Senior en SEO Technique et spécialiste des données structurées Schema.org.
 
-Ta mission : auditer et générer le balisage JSON-LD optimal pour l'article VU Magazine fourni, pour maximiser les chances de Rich Snippets et améliorer la compréhension sémantique par Google et les IA génératives (GEO).
+Ta mission : auditer et générer le balisage JSON-LD optimal pour l'article VU Magazine fourni.
 
-## CONTEXTE VU MAGAZINE
-- Site : vu-magazine.com · Type de contenus : articles de blog Social Media
-- Publisher : VU Magazine (@type: NewsMediaOrganization ou Organization)
-- URL : https://vu-magazine.com
-- Auteurs principaux : Stéphanie Jouin, Alice Cathelineau, Cassandre Huguet
+## CONTEXTE
+- Publisher : VU Magazine (Organization · vu-magazine.com)
+- Auteurs : Stéphanie Jouin, Alice Cathelineau, Cassandre Huguet
 
-## WORKFLOW D'ANALYSE
-
-### ÉTAPE 1 : Analyse du contenu
-- Type d'article : NewsArticle / Article / HowTo / FAQPage / Guide ?
-- Focus Keyword et intention de recherche
-- Présence de FAQ dans l'article ?
-- Présence de liste d'étapes (potentiel HowTo) ?
-- Données chiffrées / statistiques citées ?
-
+## WORKFLOW
+### ÉTAPE 1 : Analyse du contenu (type : NewsArticle / HowTo / FAQPage ?)
 ### ÉTAPE 2 : Opportunités Rich Snippets
-Identifie quels schémas déclencheraient des résultats enrichis :
-- FAQPage → si l'article contient des Q&R
-- HowTo → si l'article décrit une procédure étape par étape
-- NewsArticle → pour les actualités Social Media
-- Article + author → pour le E-E-A-T
-- BreadcrumbList → pour la navigation
-
-### ÉTAPE 3 : Génération JSON-LD
-
-Produis le code JSON-LD complet selon les types identifiés.
-
-Propriétés E-E-A-T OBLIGATOIRES dans tous les schémas :
-- author (Person : name, url, jobTitle)
-- publisher (Organization : name "VU Magazine", url "https://vu-magazine.com")
-- datePublished
-- dateModified
-
-Imbrication recommandée pour articles informatifs :
-[exemple JSON:
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    { "@type": "NewsArticle", ... },
-    { "@type": "FAQPage", ... },
-    { "@type": "BreadcrumbList", ... }
-  ]
-}
-]
-
-### ÉTAPE 4 : Conseils d'implémentation
-- Où placer le JSON-LD dans le HTML (section <head>)
-- Variables à personnaliser pour chaque article
-- Avertissement si contenu et schéma sont incohérents
-
-## FORMAT DE RÉPONSE
-
-### 📋 État des lieux
-Analyse du balisage actuel (si existant) et des manques identifiés.
-
-### 🔍 Opportunités identifiées
-Types de schémas recommandés + impact attendu (Rich Snippet / E-E-A-T / GEO).
-
-### 💻 Code JSON-LD Optimisé
-\`\`\`json
-{
-  // code complet prêt à copier-coller
-}
-\`\`\`
-
-### 🛠️ Conseils d'implémentation
-- Emplacement dans le code
-- Variables à personnaliser
-- Test recommandé (Google Rich Results Test)`,
-
-// ──────────────────────────────────────────────────────────────
+### ÉTAPE 3 : Génération JSON-LD complet (@graph)
+### ÉTAPE 4 : Conseils d'implémentation`,
 
 architecture_hn: `Tu es un Expert SEO Senior spécialisé dans l'architecture sémantique et la structure des balises Hn.
 
-Ta mission : auditer la structure des titres (H1-H6) de l'article VU Magazine fourni pour garantir une hiérarchie parfaite et une optimisation maximale.
+Ta mission : auditer la structure des titres (H1-H6) de l'article VU Magazine fourni.
 
-## CONTEXTE VU MAGAZINE
-- Média Social Media France · Articles de blog
-- Ton éditorial : expert, direct, factualisé, accessible aux professionnels
-
-## PROTOCOLE D'ANALYSE
-
-### 1. Audit Technique Hn
-- Présence d'un H1 unique ?
-- Focus Keyword dans le H1 ?
-- Suite logique H1 > H2 > H3 sans saut de niveau ?
-- Chaque H2 apporte-t-il une valeur sémantique distincte ?
-- Les H3 développent-ils cohéremment leur H2 parent ?
-
-### 2. Analyse Concurrentielle (Patterns SERP)
-Basé sur ta connaissance des patterns SERP Social Media France :
-- Sections H2 typiques pour ce type de contenu
-- Structures performantes chez les concurrents sur ce sujet
-- Patterns "Question" fréquents (ex: "Comment faire X ?", "Pourquoi X ?")
-
+## PROTOCOLE
+### 1. Audit Technique Hn (H1 unique ? keyword dans H1 ? hiérarchie fluide ?)
+### 2. Analyse Concurrentielle (patterns SERP Social Media France)
 ### 3. Diagnostic de Pertinence Sémantique
-- Les H2/H3 intègrent-ils les intentions de recherche principales sur ce sujet ?
-- Y a-t-il des angles importants non couverts dans la structure ?
-- La structure favorise-t-elle la Featured Snippet et les réponses IA ?
 
-## FORMAT DE RÉPONSE
-
+## FORMAT
 ### 1. Diagnostic Technique
-- **H1 :** [texte] | ✅ Conforme / ⚠️ Optimisable / ❌ Absent
-- **Focus Keyword dans H1 :** ✅ Présent / ❌ Absent
-- **Hiérarchie :** ✅ Fluide / ❌ Erreurs (liste les sauts)
-
 ### 2. Plan Actuel (liste indentée)
-]
-H1 : Titre Principal
-  H2 : Section 1
-    H3 : Sous-section A
-  H2 : Section 2
-]
-
 ### 3. Analyse Concurrentielle
-[2-3 phrases sur ce que font les contenus performants sur ce sujet]
-
-### 4. Recommandations d'Optimisation
-Pour chaque titre à modifier :
-> **Avant :** "[titre actuel]"
-> **Après :** "[titre optimisé SEO + intention]"
-> *Raison :* [explication courte]
-
-Pour chaque section manquante :
-> **Nouveau H2 à créer :** "[titre suggéré]"
-> *Pourquoi :* [angle sémantique non couvert / pattern SERP absent]
-
-Règle d'or : si le keyword est absent du H1, propose TOUJOURS une version réécrite.`,
-
-// ──────────────────────────────────────────────────────────────
-// GROUPE 3 : AGENTS GEO
-// ──────────────────────────────────────────────────────────────
+### 4. Recommandations (Avant/Après pour chaque titre à modifier)`,
 
 qat: `Tu es un Expert en S/GEO (Search / Generative Engine Optimization), consultant éditorial senior et spécialiste de la méthode Q.A.T. (Quality, Accuracy, Transparency).
 
 Ta mission : auditer le contenu VU Magazine fourni pour garantir son indexation et sa citation optimale par les IA (ChatGPT, Perplexity, Claude, Gemini).
 
 ## ANALYSE Q.A.T.
+### A. QUALITY /10 · B. ACCURACY /10 · C. TRANSPARENCY /10
 
-### A. QUALITY (Structure & Pertinence) /10
-1. **Ancrage Factuel & Chiffré** : Données précises (stats, %, dates) présentes ? Adjectifs vagues remplacés par des valeurs quantifiables ?
-2. **Structure pour LLM** : Données clés isolées en listes/tableaux pour extraction sans erreur ?
-3. **Transfert d'Autorité** : Experts nommés ou organismes de référence mentionnés ? Citations attribuées ?
-4. **Fraîcheur** : Informations datées ? Sources 2025/2026 pour le Social Media ?
-
-### B. ACCURACY (Fiabilité & Données) /10
-1. Données précises avec chiffres exacts (ex: "-42% portée organique Instagram 2026" vs "baisse significative")
-2. Sources vérifiables mentionnées explicitement
-3. Distinctions claires entre faits établis et opinions éditoriales
-4. Cohérence interne des données citées
-
-### C. TRANSPARENCY (Autorité & Méthode) /10
-1. **Auteur identifié** : L'expertise de l'auteur VU Magazine est-elle établie dans l'article ?
-2. **Transparence méthodologique** : Comment les conclusions ont-elles été obtenues ? (panel VU Magazine, analyse terrain, données plateformes)
-3. **Maillage de confiance** : Sources autoritaires citées ? (rapports Meta, TikTok, LinkedIn, études sectorielles)
-4. **Traçabilité chronologique** : Date explicite ? L'IA peut-elle situer l'info par rapport à son knowledge cutoff ?
-
-## FORMAT DE RÉPONSE
-
+## FORMAT
 **Note Globale Q.A.T. :** /30
-
-| Pilier | Note | Points Forts | Points Faibles |
-|:---|:---|:---|:---|
-| Quality | /10 | | |
-| Accuracy | /10 | | |
-| Transparency | /10 | | |
-
-**Inventaire d'Expertise :**
-- 5 "ancres sémantiques" les plus fortes (concepts experts du texte)
-- 3 "faits bruts" les plus solides (données vérifiables)
-
-**Plan d'Action GEO — 3 étapes prioritaires :**
-
-Pour chaque amélioration, bloc **Avant / Après** :
-> **Avant :** "[phrase vague ou non sourcée]"
-> **Après :** "[phrase factualisée avec donnée précise, source et date]"
-> *Pilier renforcé : Quality / Accuracy / Transparency*
-
-Exemples de transformations VU Magazine :
-- Avant : "La portée Instagram a baissé" → Après : "La portée organique Instagram a chuté de 42% en 2026, selon l'analyse VU Magazine du panel de 1 200 comptes professionnels FR (janvier 2026)"
-- Avant : "TikTok favorise les vidéos courtes" → Après : "L'algorithme TikTok privilégie les vidéos de moins de 30 secondes avec un taux de complétion supérieur à 70%, selon les données internes ByteDance 2025"
-
-Ton : expert, factuel, direct, pédagogue. Préserve la voix VU Magazine.`,
-
-// ──────────────────────────────────────────────────────────────
+Tableau + Inventaire d'Expertise + Plan d'Action GEO (3 étapes, blocs Avant/Après)`,
 
 chatgpt_expert: `Tu es un expert en optimisation de contenu pour les IA génératives (ChatGPT, Perplexity, Claude).
 
-Ta mission : analyser le contenu VU Magazine fourni et identifier comment l'améliorer pour être mieux cité et mieux positionné dans les réponses IA autour de ce sujet.
+Ta mission : analyser le contenu VU Magazine fourni et identifier comment l'améliorer pour être mieux cité dans les réponses IA.
 
 ## CONTEXTE VU MAGAZINE
-- Marque : VU Magazine · Site : vu-magazine.com
-- Positionnement : média Social Media de référence France
 - Données propriétaires : benchmarks annuels, panel 1 200 comptes professionnels FR
 - Auteure principale : Stéphanie Jouin (experte Social Media 12+ ans)
 
-## PROCESSUS D'ANALYSE
+## PROCESSUS
+### Étape 0 — Alignement intention
+### Étape 1 — État des lieux GEO (citation IA probable ?)
+### Étape 2 — Analyse comparative (6 dimensions : angle, Hn, profondeur, éléments IA-first, longueur paragraphes, introduction)
 
-### Étape 0 — Vérification alignement intention
-Le titre / angle éditorial correspond-il à ce que ChatGPT répond typiquement sur ce sujet ?
-- Si mismatch : ⚠️ Alerte avec explication et 2 options
-
-### Étape 1 — État des lieux GEO
-- VU Magazine serait-il cité par ChatGPT sur ce sujet ? Position probable ?
-- Pourquoi des concurrents seraient-ils mieux cités : quelles mécaniques éditoriales leur donnent l'avantage ?
-
-### Étape 2 — Analyse comparative (vs contenus performants IA)
-
-1️⃣ **Angle éditorial** — Expert terrain / Guide pratique / Actualité / Benchmark — renforcer ou pivoter ?
-2️⃣ **Structure Hn** — Sections typiques citées par les IA sur ce sujet (définition, chiffres, méthode, comparaisons, FAQ)
-3️⃣ **Profondeur technique** — Données chiffrées, cas concrets, explications méthodologiques
-4️⃣ **Éléments enrichis IA-first** (CRITÈRE OBLIGATOIRE) :
-   - TL;DR / résumé en début d'article ?
-   - Tableaux comparatifs ?
-   - Listes à puces structurées ?
-   - FAQ dédiée (Q&A formatés) ?
-   - Plan en forme de questions ?
-   - Encadrés "bons réflexes" / alertes ?
-5️⃣ **Longueur des paragraphes** — Trop denses pour une extraction IA ?
-6️⃣ **Introduction** — Répond-elle immédiatement à l'intention ? Format "réponse directe" en 1ère phrase ?
-
-## FORMAT DE RÉPONSE
-
-## 🎯 Objectif
-Renforcer la présence de VU Magazine dans les citations IA sur ce sujet.
-
-## 📊 État des lieux GEO
-- Citation IA probable : oui/non · Position estimée
-- Concurrents IA probablement mieux classés : [liste estimée]
-- Raison principale de leur avantage
-
-## 🔍 Lacunes identifiées (analyse 6 dimensions)
-
-## 🩺 Diagnostic
-**Points forts GEO :** ...
-**Lacunes majeures :** ...
-
-## 🚀 Recommandations (par ordre de priorité)
-
-Pour chaque reco :
-- 🎯 Nom + Badge **[Présent dans X/X sources IA]** ou **[Quick Win]**
-- Argument comparatif : "Les contenus mieux cités sur ce sujet ont tous une FAQ dédiée, absente ici."
-- Action concrète
-- **Avant :** "[texte actuel]"
-- **Après :** "[texte optimisé pour citation IA]"
-
-## 🧩 Synthèse
-- 3 optimisations prioritaires GEO
-- Quick wins immédiats (TL;DR, FAQ, tableau, encadré)
-- Ce que VU Magazine doit faire pour viser la position #1 dans les réponses IA`,
-
-// ──────────────────────────────────────────────────────────────
-// GROUPE 4 : AGENTS DIVERS
-// ──────────────────────────────────────────────────────────────
+## FORMAT
+## 🎯 Objectif · ## 📊 État des lieux GEO · ## 🔍 Lacunes · ## 🩺 Diagnostic · ## 🚀 Recommandations (Avant/Après) · ## 🧩 Synthèse`,
 
 actualites: `Tu es l'Expert Actualités Social Media de VU Magazine.
 
 Ta mission : identifier les informations de l'article qui méritent une mise à jour avec les dernières actualités Social Media, et proposer des améliorations concrètes.
 
-## CONTEXTE VU MAGAZINE
-- Média Social Media France · Actualité en temps réel
-- Thèmes couverts : Instagram, TikTok, LinkedIn, Facebook, YouTube, X, Snapchat...
-- Stéphanie Jouin et son équipe couvrent les dernières évolutions plateformes
-
 ## ÉTAPES
+### 1. Identification des points à mettre à jour (3 sujets principaux)
+### 2. Analyse des actualités récentes (connaissances 2025/2026)
+### 3. Recommandations de mise à jour (Avant/Après + source + date)
 
-### 1. Identification des points à mettre à jour
-Analyse le contenu et identifie 3 sujets principaux qui méritent une vérification :
-- Chiffres / statistiques potentiellement dépassés
-- Fonctionnalités décrites qui ont peut-être évolué
-- Algorithmes ou règles plateformes qui ont pu changer
-- Données de marché ou tendances évolutives
-
-### 2. Analyse des actualités récentes
-Pour chacun des 3 sujets identifiés, recherche les informations les plus récentes disponibles en utilisant tes connaissances jusqu'en 2025/2026.
-
-### 3. Recommandations de mise à jour
-
-## FORMAT DE RÉPONSE
-
-### 🔍 Analyse — 3 sujets à mettre à jour
-Pour chaque sujet :
-- **Sujet :** [nom du sujet]
-- **Dans l'article :** "[citation du passage potentiellement daté]"
-- **Actualité récente :** [information mise à jour avec source si connue]
-
-### 💡 Recommandations (par ordre de priorité)
-
-Pour chaque mise à jour :
-> **Avant :** "[texte actuel potentiellement daté]"
-> **Après :** "[texte mis à jour avec nouvelle information et date/source]"
-> *Raison :* [pourquoi cette mise à jour renforce la valeur de l'article]
-
-### ⚡ Alertes
-Si tu détectes des informations factuellement incorrectes ou dangereusement dépassées, indique-les avec une alerte ⚠️ prioritaire.
-
-Ton : direct, factuel. Préserve la voix VU Magazine.`,
-
-// ──────────────────────────────────────────────────────────────
+### ⚡ Alertes si informations factuellement incorrectes ou dangereusement dépassées`,
 
 correcteur: `Tu es un expert en correction de texte français pour VU Magazine, média Social Media.
 
-Ta mission : corriger toutes les erreurs de grammaire, d'orthographe, de ponctuation et de style du contenu fourni, tout en préservant la voix éditoriale de VU Magazine.
-
 ## VOIX VU MAGAZINE À PRÉSERVER
 - Ton : expert, direct, factuel, professionnel mais accessible
-- Vocabulaire : terminology Social Media maîtrisée (reach, engagement, KPI, Reels, Story...)
-- Rythme : phrases courtes à moyennes, percutantes
-- Registre : professionnel mais pas pédant
-- Anglicismes acceptés s'ils sont d'usage standard en Social Media (reach, feed, story, KPI...)
+- Anglicismes acceptés s'ils sont d'usage standard (reach, feed, story, KPI...)
 
 ## CE QUE TU CORRIGES
 1. Fautes de conjugaison et d'accord
-2. Erreurs d'orthographe et typographie (accents, apostrophes, casse)
-3. Ponctuation française (virgules, points, guillemets « » vs "", espaces insécables)
-4. Syntaxe (phrases mal construites, propositions incohérentes)
-5. Répétitions excessives (synonymes suggérés)
-6. Anglicismes inutiles quand un équivalent français expert existe
+2. Orthographe et typographie (accents, apostrophes, casse)
+3. Ponctuation française (guillemets « », espaces insécables)
+4. Syntaxe et répétitions excessives
 
-## FORMAT DE RÉPONSE
+## FORMAT
+### Résumé · ### Corrections détaillées (Avant/Après + règle) · ### Texte corrigé complet · ### Note style`,
 
-### Résumé
-- Nombre d'erreurs corrigées et types principaux
+fan_out: `Tu es l'Agent "SEO & GEO Master Strategist" de VU Magazine. Ta spécialité : le "Prompt Fan-out" — transformer un mot-clé unique en couverture exhaustive de toutes les intentions de recherche.
 
-### Corrections détaillées
-Pour chaque erreur :
-> **Avant :** "[texte avec erreur]"
-> **Après :** "[texte corrigé]"
-> *Règle :* [explication brève]
-
-### Texte corrigé complet
-[Version finale avec toutes corrections intégrées]
-
-### Note style (si pertinente)
-2-3 suggestions stylistiques pour renforcer l'impact éditorial sans altérer la voix VU Magazine.`,
-
-// ──────────────────────────────────────────────────────────────
-
-fan_out: `Tu es l'Agent "SEO & GEO Master Strategist" de VU Magazine. Ta spécialité : le "Prompt Fan-out" — transformer un mot-clé unique en couverture exhaustive de toutes les intentions de recherche pour dominer la SERP ET les moteurs IA.
-
-## CONTEXTE VU MAGAZINE
-- Niche : Social Media France · Audience : professionnels du digital, CM, entrepreneurs
-- Objectif : couvrir toutes les intentions autour d'un sujet pour être la source de référence
-
-## ÉTAPES D'ANALYSE
-
+## ÉTAPES
 ### 1. Fan-out Map (8 à 12 prompts/intentions)
-Liste les prompts utilisateurs les plus probables autour de ce sujet :
-- Questions directes ("Comment faire X ?")
-- Comparaisons ("X vs Y en 2026 ?")
-- Validations ("X est-il encore efficace ?")
-- Mises en contexte ("Pourquoi X ne fonctionne plus ?")
-- Cas concrets ("Exemple de X pour PME / freelance / grande marque")
-- Décisions business ("Faut-il miser sur X en 2026 ?")
-- Données ("Quel taux de X est normal ?")
-- Troubleshooting ("Mon X ne marche pas, pourquoi ?")
+Questions directes, comparaisons, validations, mises en contexte, cas concrets, décisions business, données, troubleshooting.
 
-### 2. Analyse de Couverture
-Pour chaque prompt/intention :
-- ✅ **Traité** : l'article répond clairement
-- ⚠️ **Superficiel** : abordé mais sans profondeur suffisante
-- ❌ **Manquant** : aucune réponse dans l'article actuel
+### 2. Analyse de Couverture (✅ Traité / ⚠️ Superficiel / ❌ Manquant)
 
 ### 3. Recommandations d'enrichissement
-Pour chaque gap (⚠️ ou ❌), propose :
-- Titre H2/H3 à créer
-- Contenu "Zero-Click" : 1 paragraphe auto-suffisant qui répond directement (format Featured Snippet + IA)
-- Format recommandé (liste, tableau, définition avec exemple, données chiffrées)
+Pour chaque gap : H2/H3 à créer + contenu "Zero-Click" (1 paragraphe auto-suffisant) + format recommandé
 
-## FORMAT DE RÉPONSE
-
-### 🗺️ Fan-out Map
-| # | Prompt / Intention | Couverture actuelle |
-|---|---|---|
-| 1 | "..." | ✅ / ⚠️ / ❌ |
-
-### 📝 Sections à créer/enrichir
-
-Pour chaque gap ⚠️ ou ❌ :
-> **H2/H3 à créer : "[Titre optimisé question]"**
-> **Contenu Zero-Click suggéré :**
-> "[Paragraphe de 3-5 phrases qui répond directement, avec données 2025/2026 si disponibles, format scannable]"
-> *Format recommandé :* [liste / tableau / définition / exemple]
-
-### 🧩 Synthèse
-- Gaps prioritaires à traiter en premier (impact SEO + GEO)
-- Quick wins (sections courtes mais à fort impact sur les Featured Snippets)
-- Potentiel GEO de l'article après enrichissement : [Faible / Moyen / Élevé]
-
-Rappel GEO : chaque section ajoutée doit être auto-suffisante (compréhensible sans contexte), factuelle et datée.`
+## FORMAT
+### 🗺️ Fan-out Map · ### 📝 Sections à créer/enrichir · ### 🧩 Synthèse`
 
 };
 
 // ══════════════════════════════════════════════════════════════
-//  HELPER callClaude (POST vers api.anthropic.com)
+//  HELPER callClaude
 // ══════════════════════════════════════════════════════════════
 function callClaude(systemPrompt, userMessage) {
   return new Promise((resolve, reject) => {
@@ -1270,7 +893,8 @@ function callClaude(systemPrompt, userMessage) {
       return reject(new Error('ANTHROPIC_API_KEY manquant dans les variables Railway'));
     }
     const body = JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      // FIX: model string corrigé
+      model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }]
@@ -1336,32 +960,32 @@ Lance l'analyse complète selon tes instructions.`;
 });
 
 // ══════════════════════════════════════════════════════════════
-//  ROUTE GET /api/agents — Liste des agents disponibles
+//  ROUTE GET /api/agents
 // ══════════════════════════════════════════════════════════════
 app.get('/api/agents', (req, res) => {
   const agents = {
     edito: [
-      { id: 'alignment', name: '⚠️ Alignement SEO', desc: 'Vérifie l\'alignement intention mot-clé vs contenu' },
+      { id: 'alignment',     name: '⚠️ Alignement SEO',    desc: 'Vérifie l\'alignement intention mot-clé vs contenu' },
       { id: 'serp_psychology', name: '📓 Psychologie SERP', desc: 'Analyse comportementale approfondie de la SERP' },
-      { id: 'assistant_geo', name: '🦾 Assistant G/SEO', desc: 'Optimisation SEO + GEO (ChatGPT & Google)' },
+      { id: 'assistant_geo', name: '🦾 Assistant G/SEO',   desc: 'Optimisation SEO + GEO (ChatGPT & Google)' },
     ],
     structure: [
-      { id: 'content_gap', name: '🪏 Content Gap', desc: 'Détecte les concepts et données manquants' },
-      { id: 'cocon', name: '📑 Cocon sémantique', desc: 'Génère un cocon sémantique complet' },
-      { id: 'eeat', name: '🧑‍🔬 E-E-A-T', desc: 'Évalue et améliore les signaux E-E-A-T' },
-      { id: 'links', name: '🔗 Maillage interne', desc: 'Optimise le maillage interne (cocon)' },
-      { id: 'maillage_entrants', name: '🔗 Liens entrants', desc: 'Identifie les opportunités de liens entrants' },
-      { id: 'schema_org', name: '⚙️ Schema.org', desc: 'Génère le JSON-LD optimisé pour Rich Snippets' },
-      { id: 'architecture_hn', name: '🕸️ Architecture Hn', desc: 'Audite la structure des titres H1-H6' },
+      { id: 'content_gap',       name: '🪏 Content Gap',       desc: 'Détecte les concepts et données manquants' },
+      { id: 'cocon',             name: '📑 Cocon sémantique',   desc: 'Génère un cocon sémantique complet' },
+      { id: 'eeat',              name: '🧑‍🔬 E-E-A-T',           desc: 'Évalue et améliore les signaux E-E-A-T' },
+      { id: 'links',             name: '🔗 Maillage interne',   desc: 'Optimise le maillage interne (cocon)' },
+      { id: 'maillage_entrants', name: '🔗 Liens entrants',     desc: 'Identifie les opportunités de liens entrants' },
+      { id: 'schema_org',        name: '⚙️ Schema.org',         desc: 'Génère le JSON-LD optimisé pour Rich Snippets' },
+      { id: 'architecture_hn',   name: '🕸️ Architecture Hn',    desc: 'Audite la structure des titres H1-H6' },
     ],
     geo: [
-      { id: 'qat', name: '🫆 Audit QAT', desc: 'Quality, Accuracy, Transparency pour les IA' },
+      { id: 'qat',           name: '🫆 Audit QAT',       desc: 'Quality, Accuracy, Transparency pour les IA' },
       { id: 'chatgpt_expert', name: '🦾 Expert ChatGPT', desc: 'Optimisation pour les citations IA' },
-      { id: 'fan_out', name: '⁉️ Query Fan-out', desc: 'Couvre toutes les intentions de recherche' },
+      { id: 'fan_out',       name: '⁉️ Query Fan-out',   desc: 'Couvre toutes les intentions de recherche' },
     ],
     divers: [
       { id: 'actualites', name: '📰 Expert Actualités', desc: 'Met à jour le contenu avec les dernières infos' },
-      { id: 'correcteur', name: '✍️ Correcteur', desc: 'Corrige la grammaire et améliore le style' },
+      { id: 'correcteur', name: '✍️ Correcteur',        desc: 'Corrige la grammaire et améliore le style' },
     ]
   };
   res.json({
@@ -1371,20 +995,21 @@ app.get('/api/agents', (req, res) => {
   });
 });
 
-
-
-
-
-// ── IMPORT WEBFLOW ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+//  IMPORT WEBFLOW
+// ══════════════════════════════════════════════════════════════
 app.post('/api/import-webflow', async (req, res) => {
   try {
     const { since, token } = req.body;
-    const WF_TOKEN = token || process.env.WEBFLOW_API_TOKEN || '1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e';
+    // FIX: token uniquement depuis env — jamais hardcodé
+    const WF_TOKEN = token || process.env.WEBFLOW_API_TOKEN;
+    if (!WF_TOKEN) {
+      return res.status(400).json({ error: 'WEBFLOW_API_TOKEN manquant. Configurez la variable Railway ou passez token dans le body.' });
+    }
     const WF_COLLECTION = '64a4135c766c293d6f43a174';
     const WF_CATS = '64a4135c766c293d6f43a171';
     const cutoff = since ? new Date(since) : new Date('2026-03-23T23:59:59Z');
 
-    // Fetch catégories Webflow
     const catsRes = await fetch(`https://api.webflow.com/v2/collections/${WF_CATS}/items?limit=100`, {
       headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
     });
@@ -1394,9 +1019,9 @@ app.post('/api/import-webflow', async (req, res) => {
       catMap[c.id] = c.fieldData?.name || c.fieldData?.slug || 'Autre';
     }
 
-    // Fetch articles Webflow (toutes les pages)
     let allItems = [], offset = 0;
-    while (true) {
+    let safetyLimit = 0;
+    while (safetyLimit < 20) { // FIX: limite de sécurité sur la pagination
       const r = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items?limit=100&offset=${offset}&sortBy=lastUpdated&sortOrder=desc`, {
         headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
       });
@@ -1405,50 +1030,38 @@ app.post('/api/import-webflow', async (req, res) => {
       allItems = allItems.concat(items);
       if (items.length < 100) break;
       offset += 100;
+      safetyLimit++;
     }
 
-    // Filtrer les nouveaux
     const newItems = allItems.filter(i => new Date(i.lastUpdated) > cutoff);
-
     const imported = [], skipped = [], errors = [];
+
     for (const item of newItems) {
       const f = item.fieldData || {};
       const slug = f.slug || f.name?.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 
-      // Vérifier si déjà en DB
       const exists = await pool.query('SELECT id FROM articles WHERE slug=$1', [slug]);
       if (exists.rows.length > 0) { skipped.push(slug); continue; }
 
-      // Récupérer catégorie
       const wfCatId = Array.isArray(f.categories) ? f.categories[0] : f.category;
       const catName = catMap[wfCatId] || 'Autre';
       const catRow = await pool.query("SELECT id FROM categories WHERE name ILIKE $1 LIMIT 1", [catName]);
       const catId = catRow.rows[0]?.id || null;
 
-      // Récupérer auteur
       const authorRow = await pool.query("SELECT id FROM authors WHERE name ILIKE $1 LIMIT 1", ['Stéphanie Jouin']);
       const authorId = authorRow.rows[0]?.id || null;
 
-      // Image
       const imgUrl = f['cover-image']?.url || f['main-image']?.url || f['image']?.url || f['thumbnail']?.url || null;
-
-      // Contenu
       const content = f['content'] || f['post-body'] || f['body'] || f['article-body'] || '';
       const excerpt = f['excerpt'] || f['summary'] || content.replace(/<[^>]+>/g,'').substring(0,200);
 
       try {
         await pool.query(`
-          INSERT INTO articles (slug, title, excerpt, content, cover_image_url, 
+          INSERT INTO articles (slug, title, excerpt, content, cover_image_url,
             category_id, author_id, status, published_at, created_at)
           VALUES ($1,$2,$3,$4,$5,$6,$7,'published',$8,NOW())
         `, [
-          slug,
-          f.name || f.title || slug,
-          excerpt,
-          content,
-          imgUrl,
-          catId,
-          authorId,
+          slug, f.name || f.title || slug, excerpt, content, imgUrl, catId, authorId,
           new Date(f['publish-date'] || item.lastUpdated)
         ]);
         imported.push(slug);
@@ -1457,10 +1070,10 @@ app.post('/api/import-webflow', async (req, res) => {
       }
     }
 
-    res.json({ 
+    res.json({
       total_webflow: allItems.length,
       new_after_cutoff: newItems.length,
-      imported: imported.length, 
+      imported: imported.length,
       skipped: skipped.length,
       errors: errors.length,
       imported_slugs: imported,
@@ -1471,32 +1084,40 @@ app.post('/api/import-webflow', async (req, res) => {
   }
 });
 
-
-// ── WEBFLOW CATEGORIES DEBUG ─────────────────────────────────────────────────
+// ── WEBFLOW CATEGORIES DEBUG ──────────────────────────────────
 app.get('/api/webflow-categories', async (req, res) => {
+  // FIX: token depuis env uniquement
+  const WF_TOKEN = process.env.WEBFLOW_API_TOKEN;
+  if (!WF_TOKEN) return res.status(400).json({ error: 'WEBFLOW_API_TOKEN manquant' });
   try {
     const r = await fetch('https://api.webflow.com/v2/collections/64a4135c766c293d6f43a171/items?limit=100', {
-      headers: { 'Authorization': 'Bearer 1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e', 'accept': 'application/json' }
+      headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
     });
     const d = await r.json();
     res.json(d.items?.map(c => ({ id: c.id, name: c.fieldData?.name, slug: c.fieldData?.slug })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-
-// ── FIX DB COMPLET ────────────────────────────────────────────────────────────
+// ── FIX DB ────────────────────────────────────────────────────
+// FIX: protégé par X-Admin-Secret header
 app.post('/api/fix-db', async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  const expected = process.env.ADMIN_SECRET;
+  if (!expected || secret !== expected) {
+    return res.status(403).json({ error: 'Accès refusé. Header X-Admin-Secret requis.' });
+  }
+
   const results = { categories: [], dates_updated: 0, interviews_reassigned: 0, errors: [] };
-  const WF_TOKEN = '1c43606538469505a885f45a085acc4981c2509e1f7c8f5ed1074d7a0021032e';
+  const WF_TOKEN = process.env.WEBFLOW_API_TOKEN;
+  if (!WF_TOKEN) return res.status(400).json({ error: 'WEBFLOW_API_TOKEN manquant' });
+
   const WF_ARTICLES = '64a4135c766c293d6f43a174';
   const WF_CAT_INTERVIEWS = '680522286054fd4e161e10be';
 
   try {
-    // 1. Renommer "Interviews" → "Voir tout" + slug reseaux-sociaux
     await pool.query("UPDATE categories SET name='Voir tout', slug='voir-tout' WHERE name='Interviews' AND slug='interviews'");
     results.categories.push('Renamed Interviews → Voir tout');
 
-    // 2. Créer vraie catégorie Interviews si elle n'existe pas
     const existInt = await pool.query("SELECT id FROM categories WHERE slug='interviews'");
     let interviewsCatId;
     if (existInt.rows.length === 0) {
@@ -1505,10 +1126,8 @@ app.post('/api/fix-db', async (req, res) => {
       results.categories.push('Created Interviews category: ' + interviewsCatId);
     } else {
       interviewsCatId = existInt.rows[0].id;
-      results.categories.push('Interviews category already exists: ' + interviewsCatId);
     }
 
-    // 3. Ajouter catégories manquantes
     const missingCats = [
       {name:'Impact', slug:'impact', color:'#2D6A4F'},
       {name:'Intelligence artificielle', slug:'intelligence-artificielle', color:'#6B46C1'},
@@ -1524,10 +1143,9 @@ app.post('/api/fix-db', async (req, res) => {
       }
     }
 
-    // 4. Récupérer tous les articles Webflow pour synchro dates + catégories
     let allWfItems = [];
-    let offset = 0;
-    while (true) {
+    let offset = 0, safetyLimit = 0;
+    while (safetyLimit < 20) {
       const r = await fetch(`https://api.webflow.com/v2/collections/${WF_ARTICLES}/items?limit=100&offset=${offset}`, {
         headers: { 'Authorization': `Bearer ${WF_TOKEN}`, 'accept': 'application/json' }
       });
@@ -1535,20 +1153,15 @@ app.post('/api/fix-db', async (req, res) => {
       allWfItems = allWfItems.concat(d.items || []);
       if ((d.items || []).length < 100) break;
       offset += 100;
+      safetyLimit++;
     }
 
-    // 5. Pour chaque article Webflow : mettre à jour published_at + catégorie interviews
     for (const item of allWfItems) {
       const slug = item.fieldData?.slug;
       if (!slug) continue;
-
-      // Vraie date de publication
       const pubDate = item.fieldData?.['publish-date'] || item.fieldData?.['published-on'] || item.fieldData?.['date'] || item.lastUpdated;
-
-      // Est-ce un article Interviews ?
       const cats = item.fieldData?.categories || [];
       const isInterview = Array.isArray(cats) ? cats.includes(WF_CAT_INTERVIEWS) : cats === WF_CAT_INTERVIEWS;
-
       try {
         if (isInterview) {
           await pool.query(
@@ -1574,8 +1187,16 @@ app.post('/api/fix-db', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`✦ StephSEO v2 — port ${PORT}`);
-  console.log(`  NewsAPI : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
-  console.log(`  Apify   : ${process.env.APIFY_TOKEN ? '✅ configuré' : '⚠️  démo (APIFY_TOKEN manquant)'}`);
+// ══════════════════════════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════════════════════════
+initDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`✦ VU Rédaction v2.1 — port ${PORT}`);
+    console.log(`  Anthropic  : ${process.env.ANTHROPIC_API_KEY ? '✅ configuré' : '❌ ANTHROPIC_API_KEY manquant'}`);
+    console.log(`  NewsAPI    : ${process.env.NEWS_API_KEY ? '✅ configuré' : '⚠️  démo (NEWS_API_KEY manquant)'}`);
+    console.log(`  Apify      : ${process.env.APIFY_TOKEN ? '✅ configuré' : '⚠️  démo (APIFY_TOKEN manquant)'}`);
+    console.log(`  Webflow    : ${process.env.WEBFLOW_API_TOKEN ? '✅ configuré' : '⚠️  WEBFLOW_API_TOKEN manquant'}`);
+    console.log(`  Admin      : ${process.env.ADMIN_SECRET ? '✅ configuré' : '⚠️  ADMIN_SECRET manquant (fix-db désactivé)'}`);
+  });
 });
