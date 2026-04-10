@@ -5,6 +5,12 @@
 //  + Veille : NewsAPI + Apify LinkedIn
 // ============================================================
 
+//  StephSEO — server.js v2
+//  Back-office éditorial VU Magazine
+//  Connecté à la même DB PostgreSQL que VU Magazine
+//  + Veille : NewsAPI + Apify LinkedIn
+// ============================================================
+
 const express = require('express');
 const path    = require('path');
 const https   = require('https');
@@ -1433,8 +1439,8 @@ app.post('/api/import-webflow', async (req, res) => {
       try {
         await pool.query(`
           INSERT INTO articles (slug, title, excerpt, content, cover_image_url, 
-            category_id, author_id, author_name, status, published_at, created_at)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'published',$9,NOW())
+            category_id, author_id, status, published_at, created_at)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,'published',$8,NOW())
         `, [
           slug,
           f.name || f.title || slug,
@@ -1443,7 +1449,6 @@ app.post('/api/import-webflow', async (req, res) => {
           imgUrl,
           catId,
           authorId,
-          'Stéphanie Jouin',
           new Date(f['publish-date'] || item.lastUpdated)
         ]);
         imported.push(slug);
