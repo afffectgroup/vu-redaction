@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Dashboard SEO'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Dashboard SEO'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Dashboard <span>SEO</span></div>
+        <div class="sec-sub">Google Search Console · Analytics</div>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn sm"   id="af-7"   onclick="setAP(7)"   style="background:var(--accent);color:#fff">7 jours</button>
+        <button class="btn g sm" id="af-28"  onclick="setAP(28)">28 jours</button>
+        <button class="btn g sm" id="af-90"  onclick="setAP(90)">Trimestre</button>
+        <button class="btn g sm" id="af-365" onclick="setAP(365)">Année</button>
+      </div>
+    </div>
+
+    <!-- KPIs DB -->
+    <div class="stats4" style="margin-bottom:18px">
+      <div class="stat ac">
+        <div class="stat-lbl">Vues totales</div>
+        <div class="stat-val" id="an-sessions">—</div>
+        <div class="stat-sub" style="color:var(--green)">All time</div>
+      </div>
+      <div class="stat gr">
+        <div class="stat-lbl">Articles publiés</div>
+        <div class="stat-val" id="an-pub">—</div>
+        <div class="stat-sub">Total</div>
+      </div>
+      <div class="stat bl">
+        <div class="stat-lbl">Ce mois</div>
+        <div class="stat-val" id="an-month">—</div>
+        <div class="stat-sub">Nouveaux articles</div>
+      </div>
+      <div class="stat pu">
+        <div class="stat-lbl">Cette semaine</div>
+        <div class="stat-val" id="an-week">—</div>
+        <div class="stat-sub">Articles</div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:16px">
+
+      <!-- Top articles -->
+      <div class="card">
+        <div class="card-t">
+          Top articles <span style="font-size:11px;font-weight:400;color:var(--ink3)">(vues)</span>
+        </div>
+        <div id="analytics-top">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+
+      <!-- Opportunités SEO -->
+      <div class="card">
+        <div class="card-t">Opportunités SEO</div>
+        <div class="vgap">
+          <div class="card-xs">
+            <div style="font-size:12px;font-weight:600;margin-bottom:4px">⚡ Articles à optimiser</div>
+            <div style="font-size:11px;color:var(--ink3);line-height:1.5">Améliorer le E-E-A-T pour passer en Top 10</div>
+            <a href="/agents?type=eeat" class="btn g sm" style="margin-top:8px;display:inline-block">Agent E-E-A-T →</a>
+          </div>
+          <div class="card-xs">
+            <div style="font-size:12px;font-weight:600;margin-bottom:4px">🔗 Maillage interne</div>
+            <div style="font-size:11px;color:var(--ink3);line-height:1.5">Renforcez le cocon sémantique</div>
+            <a href="/agents?type=links" class="btn g sm" style="margin-top:8px;display:inline-block">Maillage →</a>
+          </div>
+          <div class="card-xs">
+            <div style="font-size:12px;font-weight:600;margin-bottom:4px">📊 Score SEO moyen</div>
+            <div style="font-size:11px;color:var(--ink3);line-height:1.5">Articles avec meta description manquante</div>
+            <a href="/articles?status=published" class="btn g sm" style="margin-top:8px;display:inline-block">Voir les articles →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GSC + GA4 connexion (placeholder) -->
+    <div class="g2">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#4285F4,#34A853);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px">🔍</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">Google Search Console</div>
+            <div style="font-size:11px;color:var(--ink3)">Positions SEO, CTR et impressions</div>
+          </div>
+        </div>
+        <div style="padding:20px;background:var(--surface);border-radius:var(--r);text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">📊</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px">Connexion requise</div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.6">
+            Ajoutez <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">GSC_PROPERTY</code> et
+            <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">GOOGLE_SERVICE_ACCOUNT_JSON</code>
+            dans les variables Railway.
+          </div>
+          <a href="/settings" class="btn g sm">⚙️ Configurer →</a>
+        </div>
+        <div id="gsc-data" style="display:none">
+          <div class="metric-row">
+            <span style="font-size:12px">Impressions</span>
+            <span style="font-family:var(--mono);font-weight:600" id="gsc-imp">—</span>
+          </div>
+          <div class="metric-row">
+            <span style="font-size:12px">Clics</span>
+            <span style="font-family:var(--mono);font-weight:600" id="gsc-clicks">—</span>
+          </div>
+          <div class="metric-row">
+            <span style="font-size:12px">CTR moyen</span>
+            <span style="font-family:var(--mono);font-weight:600" id="gsc-ctr">—</span>
+          </div>
+          <div class="metric-row">
+            <span style="font-size:12px">Position moy.</span>
+            <span style="font-family:var(--mono);font-weight:600" id="gsc-pos">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#E37400,#FBBC04);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px">📈</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">Google Analytics 4</div>
+            <div style="font-size:11px;color:var(--ink3)">Trafic, sources, comportements</div>
+          </div>
+        </div>
+        <div style="padding:20px;background:var(--surface);border-radius:var(--r);text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">📉</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px">Connexion requise</div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.6">
+            Ajoutez <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">GA4_PROPERTY_ID</code>
+            dans les variables Railway.
+          </div>
+          <a href="/settings" class="btn g sm">⚙️ Configurer →</a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+let activePeriod = 7;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAnalytics();
+});
+
+function setAP(days) {
+  activePeriod = days;
+  [7,28,90,365].forEach(d => {
+    const el = document.getElementById(`af-${d}`);
+    if (el) el.style.cssText = d === days ? 'background:var(--accent);color:#fff' : '';
+  });
+  loadAnalytics();
+}
+
+async function loadAnalytics() {
+  loadTopArts();
+  try {
+    const d = await api('GET', '/api/stats');
+    const s = d.stats || {};
+    txt('an-sessions', parseInt(s.total_views||0).toLocaleString('fr'));
+    txt('an-pub',      s.published || 0);
+    txt('an-month',    s.last_30d  || 0);
+    txt('an-week',     s.last_7d   || 0);
+  } catch {}
+}
+
+async function loadTopArts() {
+  const el = document.getElementById('analytics-top');
+  if (!el) return;
+  try {
+    const d = await api('GET', '/api/articles?limit=10&status=published');
+    el.innerHTML = d.articles.length
+      ? d.articles.map((a, i) => `
+          <div class="metric-row">
+            <div style="font-size:12px;min-width:0;flex:1">
+              <span style="color:var(--ink4);font-family:var(--mono);margin-right:8px;font-size:11px">${String(i+1).padStart(2,'0')}</span>
+              <a href="/new-article?id=${a.id}"
+                style="color:var(--ink);text-decoration:none"
+                onmouseover="this.style.color='var(--accent)'"
+                onmouseout="this.style.color='var(--ink)'">
+                ${esc(a.title.substring(0,45))}${a.title.length>45?'…':''}
+              </a>
+            </div>
+            <div style="font-size:12px;font-weight:600;font-family:var(--mono);flex-shrink:0;margin-left:8px">
+              ${parseInt(a.view_count||0).toLocaleString('fr')}
+            </div>
+          </div>`).join('')
+      : '<div class="empty">Aucun article publié</div>';
+  } catch {}
+}
+</script>
+</body>
+</html>

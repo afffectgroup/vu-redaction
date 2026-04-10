@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Paramètres'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Paramètres'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div><div class="sec-ttl">Paramètres</div></div>
+    </div>
+
+    <div class="set-layout">
+
+      <!-- Nav onglets -->
+      <div class="set-nav">
+        <div class="set-ni on" onclick="switchSet('general', this)">Général</div>
+        <div class="set-ni" onclick="switchSet('brand', this)">Brand Voice</div>
+        <div class="set-ni" onclick="switchSet('api', this)">API & Intégrations</div>
+      </div>
+
+      <!-- Panneaux -->
+      <div>
+
+        <!-- Général -->
+        <div class="set-panel" id="set-general">
+          <div class="set-section">Général</div>
+          <div class="vgap">
+            <div class="field">
+              <div class="lbl">Nom du site</div>
+              <input class="inp" value="VU Magazine" readonly>
+            </div>
+            <div class="field">
+              <div class="lbl">URL production</div>
+              <div style="display:flex;gap:8px">
+                <input class="inp" value="https://vu-magazine.com" readonly style="flex:1">
+                <a href="https://vu-magazine.com" target="_blank" class="btn g sm">↗ Ouvrir</a>
+              </div>
+            </div>
+            <div class="field">
+              <div class="lbl">Back-office</div>
+              <input class="inp" value="https://vu-redaction-production.up.railway.app" readonly style="font-family:var(--mono);font-size:12px">
+            </div>
+            <div style="padding:12px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px">État des services</div>
+              <div style="display:flex;flex-direction:column;gap:6px" id="svc-status">
+                <div class="loading"><div class="spin"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brand Voice -->
+        <div class="set-panel" id="set-brand" style="display:none">
+          <div class="set-section">Brand Voice · Stéphanie Jouin</div>
+          <div class="vgap">
+            <div class="field">
+              <div class="lbl">Description du ton</div>
+              <textarea class="ta" id="bv-desc" style="min-height:120px">Expert, direct et factuel. Spécialiste Social Media depuis 12 ans. Ancré terrain France. Phrases percutantes, données vérifiées, exemples concrets. Anglicismes Social Media acceptés.</textarea>
+            </div>
+            <div class="field">
+              <div class="lbl">Phrases types</div>
+              <textarea class="ta" id="bv-ex" style="min-height:90px">La portée organique Instagram a chuté de 42% en 2026.
+Les Reels courts restent le levier le plus efficace.
+Ce que personne ne vous dit sur l'algorithme TikTok.</textarea>
+            </div>
+            <div class="field">
+              <div class="lbl">Mots à éviter</div>
+              <input class="inp" type="text" id="bv-avoid" placeholder="ex: disruption, synergies, paradigme…" value="disruption, synergies, paradigme, incontournable">
+            </div>
+            <button class="btn p" onclick="saveBrandVoice()">💾 Sauvegarder</button>
+          </div>
+        </div>
+
+        <!-- API & Intégrations -->
+        <div class="set-panel" id="set-api" style="display:none">
+          <div class="set-section">API & Intégrations</div>
+          <div class="vgap">
+
+            <div class="card-sm" id="api-claude">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">Claude API (Anthropic)</div>
+                <span id="st-claude" class="status-chip">⏳</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">Variable Railway : <code>ANTHROPIC_API_KEY</code></div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">NewsAPI</div>
+                <span id="st-news" class="status-chip">⏳</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variable : <code>NEWS_API_KEY</code> ·
+                <a href="https://newsapi.org" target="_blank" style="color:var(--blue)">newsapi.org</a>
+              </div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">Unsplash</div>
+                <span id="st-unsplash" class="status-chip">⏳</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variable : <code>UNSPLASH_ACCESS_KEY</code> ·
+                <a href="https://unsplash.com/developers" target="_blank" style="color:var(--blue)">unsplash.com/developers</a>
+              </div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">Pexels</div>
+                <span id="st-pexels" class="status-chip">⏳</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variable : <code>PEXELS_API_KEY</code> ·
+                <a href="https://www.pexels.com/api/" target="_blank" style="color:var(--blue)">pexels.com/api</a>
+              </div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">LinkedIn API</div>
+                <span id="st-linkedin" class="status-chip">⏳</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variables : <code>LINKEDIN_ORG_TOKEN</code> · <code>LINKEDIN_ORG_URN</code>
+              </div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">Google Search Console</div>
+                <span class="status-chip" style="color:var(--ink3)">Non connecté</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variables : <code>GSC_PROPERTY</code> · <code>GOOGLE_SERVICE_ACCOUNT_JSON</code>
+                <span style="margin-left:6px;background:rgba(210,153,34,.15);color:var(--yellow);font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600">DÉFÉRÉ</span>
+              </div>
+            </div>
+
+            <div class="card-sm">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-size:13px;font-weight:600">Google Analytics 4</div>
+                <span class="status-chip" style="color:var(--ink3)">Non connecté</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink3)">
+                Variable : <code>GA4_PROPERTY_ID</code>
+                <span style="margin-left:6px;background:rgba(210,153,34,.15);color:var(--yellow);font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600">DÉFÉRÉ</span>
+              </div>
+            </div>
+
+            <div style="padding:10px 12px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);font-size:11px;color:var(--ink3);line-height:1.7">
+              ℹ️ Les variables d'environnement se configurent dans Railway → Service VU Rédaction → onglet <strong>Variables</strong>. Un redémarrage automatique est déclenché à chaque modification.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<%- include('partials/scripts') %>
+<script>
+function switchSet(key, el) {
+  document.querySelectorAll('.set-ni').forEach(i => i.classList.remove('on'));
+  el?.classList.add('on');
+  document.querySelectorAll('.set-panel').forEach(p => p.style.display = 'none');
+  document.getElementById(`set-${key}`)?.style.removeProperty('display');
+}
+
+// ── État des services ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  checkServices();
+
+  // Onglet via URL ?tab=xxx
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab) {
+    const ni = document.querySelector(`.set-ni[onclick*="${tab}"]`);
+    if (ni) switchSet(tab, ni);
+  }
+});
+
+async function checkServices() {
+  // DB
+  try {
+    const d  = await api('GET', '/api/stats');
+    const sv = document.getElementById('svc-status');
+    if (sv) sv.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+        <span>🗄️ PostgreSQL (Railway)</span>
+        <span style="color:var(--green);font-weight:600">✅ Connectée · ${d.stats?.total||0} articles</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+        <span>🤖 VU Rédaction</span>
+        <span style="color:var(--green);font-weight:600">✅ En ligne</span>
+      </div>`;
+  } catch {
+    const sv = document.getElementById('svc-status');
+    if (sv) sv.innerHTML = '<div style="font-size:12px;color:var(--accent)">❌ Erreur connexion DB</div>';
+  }
+
+  // APIs
+  try {
+    const d = await api('GET', '/api/agents');
+    setStatus('st-claude',   d.anthropic_key,  '✅ Connectée',  '⚠️ Manquante');
+    setStatus('st-news',     d.news_api_key,   '✅ Connectée',  '⚠️ Manquante');
+    setStatus('st-unsplash', d.unsplash_key,   '✅ Connectée',  '⚠️ Manquante');
+    setStatus('st-pexels',   d.pexels_key,     '✅ Connectée',  '⚠️ Manquante');
+    setStatus('st-linkedin', d.linkedin_token, '✅ Connectée',  '⚠️ Manquante');
+  } catch {}
+}
+
+function setStatus(id, ok, msgOk, msgFail) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = ok ? msgOk : msgFail;
+  el.style.color = ok ? 'var(--green)' : 'var(--yellow)';
+}
+
+// ── Brand Voice ───────────────────────────────────────────────
+function saveBrandVoice() {
+  const desc  = document.getElementById('bv-desc')?.value;
+  const ex    = document.getElementById('bv-ex')?.value;
+  const avoid = document.getElementById('bv-avoid')?.value;
+  try {
+    sessionStorage.setItem('brand-voice', JSON.stringify({desc, ex, avoid}));
+  } catch {}
+  toast('✅ Brand Voice sauvegardé !');
+}
+
+// Restaurer Brand Voice depuis sessionStorage
+try {
+  const stored = sessionStorage.getItem('brand-voice');
+  if (stored) {
+    const bv = JSON.parse(stored);
+    if (bv.desc  && document.getElementById('bv-desc'))  document.getElementById('bv-desc').value  = bv.desc;
+    if (bv.ex    && document.getElementById('bv-ex'))    document.getElementById('bv-ex').value    = bv.ex;
+    if (bv.avoid && document.getElementById('bv-avoid')) document.getElementById('bv-avoid').value = bv.avoid;
+  }
+} catch {}
+</script>
+</body>
+</html>
