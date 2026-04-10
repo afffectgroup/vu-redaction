@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('partials/head', {pageTitle: 'Glossaire'}) %>
+<body>
+<%- include('partials/sidebar') %>
+<div class="main">
+  <%- include('partials/topbar', {pageTitle: 'Glossaire Social Media'}) %>
+  <div class="page-scroll">
+
+    <div class="sec-hd">
+      <div>
+        <div class="sec-ttl">Glossaire <span>Social Media</span></div>
+        <div class="sec-sub">Gérer les termes du glossaire VU Magazine</div>
+      </div>
+      <button class="btn p" onclick="openGlossModal()">+ Nouveau terme</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <div class="tbl-tb">
+        <div class="srch">
+          <span class="srch-ico">🔍</span>
+          <input class="srch-inp" type="text" id="gloss-srch"
+            placeholder="Rechercher un terme…"
+            oninput="filterGlossary(this.value)">
+        </div>
+        <div style="font-size:12px;color:var(--ink3)" id="gloss-count"></div>
+      </div>
+      <div id="glossary-list">
+        <div class="loading"><div class="spin"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+</div><!-- /main -->
+
+<!-- Modal terme -->
+<div class="modal-ov" id="gloss-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="gloss-modal-title">Nouveau terme</div>
+      <button class="modal-x" onclick="closeMod('gloss-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="gloss-id">
+      <div class="vgap">
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Terme *</div>
+            <input class="inp" type="text" id="gloss-name" placeholder="ex: Reach organique">
+          </div>
+          <div class="field">
+            <div class="lbl">Statut</div>
+            <select class="sel" id="gloss-status">
+              <option value="published">Publié</option>
+              <option value="draft">Brouillon</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl">Définition *</div>
+          <textarea class="ta" id="gloss-def"
+            placeholder="Définition claire et concise…"
+            style="min-height:100px"></textarea>
+        </div>
+        <div class="field">
+          <div class="lbl">Exemple concret</div>
+          <textarea class="ta" id="gloss-example" style="min-height:70px"></textarea>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <div class="lbl">Plateformes (séparées par virgule)</div>
+            <input class="inp" type="text" id="gloss-platforms" placeholder="Instagram, TikTok">
+          </div>
+          <div class="field">
+            <div class="lbl">Termes liés</div>
+            <input class="inp" type="text" id="gloss-related" placeholder="Impressions, Portée">
+          </div>
+        </div>
+        <div class="field">
+          <div class="lbl">Article lié (slug)</div>
+          <input class="inp" type="text" id="gloss-article" placeholder="ex: algorithme-instagram-2026">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('gloss-modal')">Annuler</button>
+      <button class="btn p" onclick="saveGlossary()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-ov" id="modal-del-gloss">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hd">
+      <div class="modal-ttl">Supprimer le terme</div>
+      <button class="modal-x" onclick="closeMod('modal-del-gloss')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink2)">Supprimer définitivement <strong id="del-gloss-name"></strong> ?</p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn g" onclick="closeMod('modal-del-gloss')">Annuler</button>
+      <button class="btn d" id="del-gloss-confirm">🗑 Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+<script>
+let allGlossary = [];
+let _delGlossId = null;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadGlossary();
+
+  document.getElementById('del-gloss-confirm').addEventListener('click', async () => {
+    if (!_delGlossId) return;
+    try {
+      await api('DELETE', `/api/glossary/${_delGlossId}`);
+      toast('Terme supprimé');
+      closeMod('modal-del-gloss');
+      loadGlossary();
+    } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+  });
+});
+
+// ── Chargement ────────────────────────────────────────────────
+async function loadGlossary() {
+  const container = document.getElementById('glossary-list');
+  if (container) container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    allGlossary = await api('GET', '/api/glossary');
+    renderGlossaryList(allGlossary);
+  } catch(e) {
+    if (container) container.innerHTML = `<div class="empty">❌ ${e.message}</div>`;
+  }
+}
+
+// ── Rendu liste ───────────────────────────────────────────────
+function renderGlossaryList(terms) {
+  const container = document.getElementById('glossary-list');
+  const count     = document.getElementById('gloss-count');
+  if (!container) return;
+
+  if (count) count.textContent = `${terms.length} terme${terms.length > 1 ? 's' : ''}`;
+
+  if (!terms.length) {
+    container.innerHTML = '<div class="empty">Aucun terme. Commencez par en ajouter un !</div>';
+    return;
+  }
+
+  // Grouper par lettre
+  const grouped = {};
+  terms.forEach(t => {
+    const l = (t.letter || t.name[0]).toUpperCase();
+    (grouped[l] = grouped[l] || []).push(t);
+  });
+
+  container.innerHTML = Object.keys(grouped).sort().map(letter => `
+    <div class="gloss-letter">${letter}</div>
+    <table style="width:100%">
+      <tbody>
+        ${grouped[letter].map(t => `
+          <tr style="border-bottom:1px solid var(--border)"
+              onmouseover="this.style.background='rgba(0,0,0,.025)'"
+              onmouseout="this.style.background=''">
+            <td style="padding:12px 16px;font-weight:500;min-width:180px">
+              ${esc(t.name)}
+            </td>
+            <td style="padding:12px 16px;color:var(--ink2);font-size:13px;max-width:420px;line-height:1.5">
+              ${esc((t.definition||'').substring(0,110))}${t.definition?.length > 110 ? '…' : ''}
+            </td>
+            <td style="padding:12px 16px">
+              ${(t.platforms||[]).map(p =>
+                `<span style="font-size:10px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:4px;margin-right:4px;color:var(--ink3)">${esc(p)}</span>`
+              ).join('')}
+            </td>
+            <td style="padding:12px 16px">
+              <span class="badge ${t.status==='published'?'b-pub':'b-dft'}">
+                ${t.status==='published'?'✅ Publié':'📝 Brouillon'}
+              </span>
+            </td>
+            <td style="padding:12px 16px">
+              <div style="display:flex;gap:6px">
+                <button class="btn g sm" onclick="editGlossary(${t.id})">Éditer</button>
+                <button class="btn d sm" onclick="confirmDelGloss(${t.id},'${escAttr(t.name)}')">✕</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`).join('');
+}
+
+// ── Filtre ────────────────────────────────────────────────────
+function filterGlossary(q) {
+  const filtered = q
+    ? allGlossary.filter(t =>
+        t.name.toLowerCase().includes(q.toLowerCase()) ||
+        t.definition?.toLowerCase().includes(q.toLowerCase()) ||
+        t.platforms?.some(p => p.toLowerCase().includes(q.toLowerCase()))
+      )
+    : allGlossary;
+  renderGlossaryList(filtered);
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function openGlossModal(term = null) {
+  document.getElementById('gloss-modal-title').textContent = term ? 'Modifier le terme' : 'Nouveau terme';
+  document.getElementById('gloss-id').value         = term?.id         || '';
+  document.getElementById('gloss-name').value       = term?.name       || '';
+  document.getElementById('gloss-def').value        = term?.definition || '';
+  document.getElementById('gloss-example').value    = term?.example    || '';
+  document.getElementById('gloss-platforms').value  = term?.platforms?.join(', ')     || '';
+  document.getElementById('gloss-related').value    = term?.related_terms?.join(', ') || '';
+  document.getElementById('gloss-article').value    = term?.article_slug || '';
+  document.getElementById('gloss-status').value     = term?.status     || 'published';
+  closeAllModals();
+  document.getElementById('gloss-modal').classList.add('open');
+  setTimeout(() => document.getElementById('gloss-name').focus(), 100);
+}
+
+function editGlossary(id) {
+  const term = allGlossary.find(t => t.id === id);
+  if (term) openGlossModal(term);
+}
+
+async function saveGlossary() {
+  const id         = document.getElementById('gloss-id').value;
+  const name       = document.getElementById('gloss-name').value.trim();
+  const definition = document.getElementById('gloss-def').value.trim();
+  if (!name || !definition) return toast('Nom et définition obligatoires', 'e');
+  const body = {
+    name, definition,
+    example:       document.getElementById('gloss-example').value,
+    platforms:     document.getElementById('gloss-platforms').value.split(',').map(s=>s.trim()).filter(Boolean),
+    related_terms: document.getElementById('gloss-related').value.split(',').map(s=>s.trim()).filter(Boolean),
+    article_slug:  document.getElementById('gloss-article').value,
+    status:        document.getElementById('gloss-status').value
+  };
+  try {
+    id ? await api('PUT', `/api/glossary/${id}`, body) : await api('POST', '/api/glossary', body);
+    toast(id ? '✅ Terme mis à jour' : '✅ Terme ajouté');
+    closeMod('gloss-modal');
+    loadGlossary();
+  } catch(e) { toast('Erreur : ' + e.message, 'e'); }
+}
+
+// ── Suppression ───────────────────────────────────────────────
+function confirmDelGloss(id, name) {
+  _delGlossId = id;
+  document.getElementById('del-gloss-name').textContent = name;
+  closeAllModals();
+  document.getElementById('modal-del-gloss').classList.add('open');
+}
+</script>
+</body>
+</html>
