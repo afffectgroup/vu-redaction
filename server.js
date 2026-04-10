@@ -99,7 +99,6 @@ app.get('/api/articles', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT a.id, a.slug, a.title, a.status, a.published_at, a.view_count,
              a.read_time_min, a.excerpt, a.cover_image_url, a.storage_url, a.cover_image_alt,
-             a.meta_title, a.meta_description, a.focus_keyword,
              c.name AS category_name, c.color AS category_color, c.id AS category_id,
              au.name AS author_name, au.id AS author_id
       FROM articles a
