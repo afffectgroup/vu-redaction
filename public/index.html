@@ -21,15 +21,11 @@ html,body{height:100%;overflow:hidden;}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;font-size:14px;-webkit-font-smoothing:antialiased;}
 a{color:inherit;text-decoration:none;} button,input,textarea,select{font-family:var(--sans);border:none;outline:none;} button{cursor:pointer;}
 ::-webkit-scrollbar{width:4px;height:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-
-/* LAYOUT */
 .sidebar{width:212px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;}
 .main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 .topbar{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--panel);flex-shrink:0;box-shadow:0 1px 0 var(--border);}
 .page-scroll{flex:1;overflow-y:auto;padding:24px 28px;background:var(--bg);}
 .page{display:none;} .page.active{display:block;}
-
-/* SIDEBAR */
 .sb-logo{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .sb-mark{width:34px;height:32px;border-radius:6px;background:#0A0A0A;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:-.02em;color:#fff;flex-shrink:0;font-family:var(--serif);}
 .sb-name{font-family:var(--serif);font-size:18px;line-height:1;} .sb-name span{color:var(--accent);}
@@ -45,41 +41,29 @@ a{color:inherit;text-decoration:none;} button,input,textarea,select{font-family:
 .sb-link{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--r);background:var(--surface);color:var(--ink2);font-size:11px;transition:background .12s;width:100%;}
 .sb-link:hover{background:var(--border);color:var(--ink);}
 .sb-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ink3);padding:5px 2px;}
-.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;box-shadow:0 0 0 0 rgba(45,158,79,.4);}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-
-/* BREADCRUMB */
 .bc{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);}
 .bc .sep{color:var(--border2);} .bc .cur{color:var(--ink);font-weight:500;}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;transition:all .12s;cursor:pointer;border:none;}
-.btn.p{background:var(--accent);color:#fff;} .btn.p:hover{background:#333333;}
+.btn.p{background:var(--accent);color:#fff;} .btn.p:hover{background:#333;}
 .btn.g{background:transparent;color:var(--ink2);border:1px solid var(--border2);} .btn.g:hover{background:var(--surface);color:var(--ink);}
 .btn.b{background:rgba(56,139,253,.12);color:var(--blue);border:1px solid rgba(56,139,253,.25);} .btn.b:hover{background:var(--blue);color:#fff;}
 .btn.green{background:rgba(63,185,80,.1);color:var(--green);border:1px solid rgba(63,185,80,.25);} .btn.green:hover{background:var(--green);color:#fff;}
 .btn.pur{background:rgba(188,140,255,.1);color:var(--purple);border:1px solid rgba(188,140,255,.25);} .btn.pur:hover{background:var(--purple);color:#fff;}
 .btn.d{background:rgba(0,0,0,.06);color:var(--accent);border:1px solid rgba(0,0,0,.15);} .btn.d:hover{background:var(--accent);color:#fff;}
 .btn.sm{padding:5px 10px;font-size:12px;}
-
-/* FORMS */
 .field{display:flex;flex-direction:column;gap:4px;}
 .lbl{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);}
 .inp,.ta,.sel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--ink);font-size:13px;transition:border-color .12s;width:100%;box-shadow:inset 0 1px 2px rgba(0,0,0,.04);}
 .inp:focus,.ta:focus,.sel:focus{border-color:var(--accent);} .ta{resize:vertical;min-height:80px;line-height:1.6;} .sel{cursor:pointer;}
 .inp::placeholder,.ta::placeholder{color:var(--ink4);}
-
-/* CARDS */
 .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .card-t{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
-
-/* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
 .b-pub{background:rgba(63,185,80,.12);color:var(--green);}
 .b-dft{background:rgba(210,153,34,.12);color:var(--yellow);}
 .b-sch{background:rgba(56,139,253,.12);color:var(--blue);}
-
-/* STATS */
 .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 .stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .stat-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
@@ -87,8 +71,6 @@ a{color:inherit;text-decoration:none;} button,input,textarea,select{font-family:
 .stat-sub{font-size:11px;color:var(--ink3);margin-top:5px;}
 .stat.ac{border-left:3px solid var(--accent);} .stat.gr{border-left:3px solid var(--green);}
 .stat.bl{border-left:3px solid var(--blue);} .stat.pu{border-left:3px solid var(--purple);}
-
-/* TABLE */
 .tbl-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .tbl-tb{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);}
 table{width:100%;border-collapse:collapse;}
@@ -97,15 +79,11 @@ tbody tr{border-bottom:1px solid var(--border);transition:background .1s;} tbody
 td{padding:10px 14px;font-size:13px;}
 .td-main{font-weight:500;color:var(--ink);max-width:340px;} .td-main small{display:block;font-size:11px;color:var(--ink3);font-weight:400;margin-top:2px;font-family:var(--mono);}
 .row-acts{display:flex;gap:5px;}
-
-/* SEARCH */
 .srch{position:relative;flex:1;}
 .srch-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:12px;}
 .srch-inp{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px 6px 28px;color:var(--ink);font-size:13px;width:100%;}
 .srch-inp:focus{border-color:var(--accent);}
 .flt-sel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;color:var(--ink2);font-size:12px;cursor:pointer;}
-
-/* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
 .modal-ov.open{display:flex;background:rgba(28,23,20,.35);backdrop-filter:blur(3px);}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;width:90vw;max-width:700px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.14);}
@@ -114,20 +92,14 @@ td{padding:10px 14px;font-size:13px;}
 .modal-x{background:none;color:var(--ink3);font-size:20px;padding:4px;} .modal-x:hover{color:var(--ink);}
 .modal-body{flex:1;overflow-y:auto;padding:20px;}
 .modal-ft{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
-
-/* TOAST */
 .toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:7px;}
 .toast{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-size:13px;min-width:220px;display:flex;align-items:center;gap:9px;animation:tIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.12);}
 .toast.s{border-left:3px solid var(--green);} .toast.e{border-left:3px solid var(--accent);} .toast.i{border-left:3px solid var(--blue);}
 @keyframes tIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:none;}}
-
-/* GRID */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
 .gcol{grid-column:1/-1;}
 .vgap{display:flex;flex-direction:column;gap:12px;}
-
-/* MISC */
 .spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0;}
 @keyframes sp{to{transform:rotate(360deg);}}
 .loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--ink3);}
@@ -135,7 +107,6 @@ td{padding:10px 14px;font-size:13px;}
 .sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .sec-ttl{font-family:var(--serif);font-size:22px;letter-spacing:-.02em;color:var(--ink);} .sec-ttl span{color:var(--accent);}
 .sec-sub{font-size:12px;color:var(--ink3);margin-top:2px;}
-/* KANBAN */
 .kanban-wrap{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;min-height:calc(100vh - 260px);}
 .kcol{flex-shrink:0;width:256px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);display:flex;flex-direction:column;}
 .kcol-hd{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -158,8 +129,6 @@ td{padding:10px 14px;font-size:13px;}
 .kadd{margin:6px;padding:8px;border-radius:var(--r);border:1px dashed var(--border);color:var(--ink3);font-size:12px;text-align:center;cursor:pointer;transition:all .12s;}
 .kadd:hover{border-color:var(--border2);color:var(--ink);background:var(--surface);}
 .kcol.dov{border-color:var(--accent);background:rgba(0,0,0,.025);}
-
-/* CALENDAR */
 .cal-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
 .cal-hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
 .cal-nav{width:28px;height:28px;border-radius:var(--r);background:var(--surface);color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);}
@@ -173,13 +142,9 @@ td{padding:10px 14px;font-size:13px;}
 .cal-day.today .cal-dn-num{color:var(--accent);} .cal-day.om .cal-dn-num{color:var(--ink4);}
 .cal-ev{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-ev.pub{background:rgba(63,185,80,.2);color:#58e06b;} .cal-ev.dft{background:rgba(210,153,34,.2);color:#e0a020;} .cal-ev.sch{background:rgba(56,139,253,.2);color:#58a8fc;}
-
-/* PLAN TABS */
 .plan-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:4px;width:fit-content;}
 .plan-tab{padding:6px 16px;border-radius:5px;font-size:13px;cursor:pointer;color:var(--ink3);transition:all .12s;}
 .plan-tab.on{background:var(--accent);color:#fff;}
-
-/* EDITOR */
 .ed-shell{display:grid;grid-template-columns:1fr 296px;gap:16px;align-items:start;}
 .ed-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
 .ed-tb{display:flex;gap:2px;flex-wrap:wrap;padding:8px 10px;background:var(--surface);border-bottom:1px solid var(--border);}
@@ -193,11 +158,9 @@ td{padding:10px 14px;font-size:13px;}
 .ed-ft{padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .wc{font-size:11px;color:var(--ink3);font-family:var(--mono);}
 .wc.ok{color:var(--green);} .wc.wn{color:var(--yellow);}
-
-/* AI PANEL */
 .ai-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;}
 .ai-hd{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.03);}
-.ai-badge{background:linear-gradient(135deg,#111111,#444444);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:100px;}
+.ai-badge{background:linear-gradient(135deg,#111,#444);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:100px;}
 .ai-gbtns{display:flex;flex-direction:column;gap:5px;padding:10px;}
 .ai-gbtn{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);color:var(--ink2);font-size:12px;font-weight:500;transition:all .12s;cursor:pointer;}
 .ai-gbtn:hover{background:var(--card);border-color:var(--border2);color:var(--ink);}
@@ -206,18 +169,12 @@ td{padding:10px 14px;font-size:13px;}
 .ai-res.show{display:block;}
 .voice-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(45,158,79,.04);border-top:1px solid var(--border);font-size:11px;color:var(--ink3);}
 .vdot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
-
-/* SEO CHECKS */
 .seo-chk{font-size:12px;display:flex;align-items:center;gap:8px;padding:3px 0;}
-.seo-chk.ok{color:var(--green);} .seo-chk.bad{color:var(--accent);} .seo-chk.wn{color:var(--yellow);}
+.seo-chk.ok{color:var(--green);} .seo-chk.bad{color:var(--accent);}
 .seo-bar{height:5px;background:var(--surface);border-radius:3px;overflow:hidden;margin:6px 0;}
 .seo-fill{height:100%;border-radius:3px;transition:width .4s;}
-
-/* URL IMPORT */
 .url-box{background:linear-gradient(135deg,rgba(0,0,0,.03),transparent);border:1px solid rgba(0,0,0,.1);border-radius:var(--r2);padding:16px;margin-bottom:16px;}
 .url-row{display:flex;gap:8px;} .url-inp{flex:1;}
-
-/* VEILLE */
 .v2col{display:grid;grid-template-columns:1fr 276px;gap:16px;}
 .news-it{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:13px;display:flex;gap:12px;transition:border-color .12s;}
 .news-it:hover{border-color:var(--border2);} .news-it.sv{border-color:rgba(56,139,253,.4);background:rgba(56,139,253,.04);}
@@ -231,8 +188,6 @@ td{padding:10px 14px;font-size:13px;}
 .sv-list{display:flex;flex-direction:column;gap:5px;}
 .sv-it{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px;display:flex;gap:8px;align-items:start;}
 .sv-del{background:none;color:var(--ink3);font-size:14px;flex-shrink:0;} .sv-del:hover{color:var(--accent);}
-
-/* MEDIA */
 .media-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
 .m-thumb{aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;background:var(--surface);border:2px solid transparent;cursor:pointer;transition:border-color .12s;position:relative;}
 .m-thumb:hover,.m-thumb.sel{border-color:var(--accent);}
@@ -243,56 +198,35 @@ td{padding:10px 14px;font-size:13px;}
 .m-upload:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,0,0,.03);}
 .m-credit{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 5px;opacity:0;transition:opacity .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .m-thumb:hover .m-credit{opacity:1;}
-
-/* LINKEDIN */
 .li-prev{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px;font-size:13px;color:var(--ink);line-height:1.7;min-height:100px;white-space:pre-wrap;}
 .li-chars{font-size:11px;color:var(--ink3);text-align:right;margin-top:5px;font-family:var(--mono);}
-
-/* ANALYTICS */
 .conn-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;}
 .metric-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
 .metric-row:last-child{border-bottom:none;}
-.m-chg{font-size:11px;padding:1px 6px;border-radius:3px;}
-.m-up{background:rgba(63,185,80,.12);color:var(--green);} .m-dn{background:rgba(0,0,0,.08);color:var(--ink2);}
-
-/* SETTINGS */
 .set-layout{display:grid;grid-template-columns:196px 1fr;gap:16px;align-items:start;}
 .set-nav{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:6px;}
 .set-ni{padding:7px 12px;border-radius:var(--r);font-size:13px;color:var(--ink2);cursor:pointer;transition:all .12s;}
 .set-ni:hover{background:var(--surface);color:var(--ink);} .set-ni.on{background:rgba(0,0,0,.07);color:var(--ink);}
 .set-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:20px;}
 .set-section{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-
-/* AI FLOAT */
 .ai-float{position:fixed;z-index:100;background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 4px 20px rgba(0,0,0,.1);width:330px;display:none;padding:14px;}
 .ai-float.show{display:block;}
 .ai-fl-inp{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;color:var(--ink);font-size:13px;margin-bottom:8px;}
 .ai-fl-btns{display:flex;gap:6px;flex-wrap:wrap;}
-
-/* COVER PREVIEW */
 .cov-prev{aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:12px;cursor:pointer;text-align:center;}
-
-/* TICKER ROW */
 .tick-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;}
 .tick-del{background:transparent;border:none;color:var(--ink3);cursor:pointer;font-size:15px;flex-shrink:0;}
 .tick-del:hover{color:var(--accent);}
-/* GLOSSAIRE */
 .gloss-letter{padding:8px 16px;font-size:18px;font-family:var(--serif);color:var(--accent);border-bottom:1px solid var(--border);background:rgba(0,0,0,.02);}
-
-
 .ed-title-input{font-family:var(--serif);font-size:20px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding-left:0;padding-bottom:10px;width:100%;}
 .slug-pill{font-size:11px;color:var(--ink3);background:var(--bg2);padding:3px 8px;border-radius:4px;font-family:var(--mono);}
 .dash-welcome{background:linear-gradient(135deg,rgba(0,0,0,.04) 0%,rgba(247,244,240,0) 70%);border:1px solid rgba(0,0,0,.1);border-radius:var(--r2);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
-
-/* Extracted inline styles */
-
 .card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px;}
 .card-xs{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
 .row-between{display:flex;justify-content:space-between;align-items:center;}
 .sep-top{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .sep-top-sm{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
 .row-between-sm{display:flex;justify-content:space-between;margin-bottom:4px;}
-.lbl-meta{font-size:77px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;}
 .char-count{font-size:10px;color:var(--ink3);text-align:right;font-family:var(--mono);}
 .hint-italic{font-size:12px;color:var(--ink3);padding:6px 0;font-style:italic;}
 .section-accent-label{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;}
@@ -300,12 +234,9 @@ td{padding:10px 14px;font-size:13px;}
 .result-body-lg{font-size:13px;color:var(--ink2);line-height:1.75;max-height:600px;overflow-y:auto;}
 .status-chip{font-size:12px;color:var(--ink3);background:var(--surface);padding:7px 12px;border-radius:var(--r);}
 .hint-box{font-size:12px;color:var(--ink3);padding:10px;background:var(--surface);border-radius:var(--r);margin-top:10px;}
-.code-hint{margin-top:14px;padding:12px;background:var(--surface);border-radius:var(--r);font-size:11px;color:var(--ink3);border:1px solid var(--border);}
 .media-prev-box{aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:12px;}
 .serif-heading{font-family:var(--serif);font-size:23px;letter-spacing:-.02em;}
 .import-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-</style>
-
 </style>
 </head>
 <body>
@@ -344,7 +275,6 @@ td{padding:10px 14px;font-size:13px;}
 
 <!-- MAIN -->
 <div class="main">
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="bc"><span>VU Magazine</span><span class="sep">›</span><span class="cur" id="bc-cur">Dashboard</span></div>
     <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
@@ -353,7 +283,6 @@ td{padding:10px 14px;font-size:13px;}
     </div>
   </div>
 
-  <!-- PAGES -->
   <div class="page-scroll" id="page-scroll">
 
     <!-- DASHBOARD -->
@@ -394,7 +323,7 @@ td{padding:10px 14px;font-size:13px;}
           <button class="btn g sm" onclick="loadNews()">↻ Actualiser</button>
         </div>
       </div>
-      <div id="v-demo-banner" class="info-banner" style="display:none">Mode démo · <strong style="color:var(--blue)">NEWS_API_KEY</strong> manquante. <a href="https://newsapi.org" target="_blank" style="color:var(--blue);text-decoration:underline;margin-left:4px">Obtenir une clé →</a></div>
+      <div id="v-demo-banner" style="display:none;background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.2);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--blue);margin-bottom:12px">Mode démo · <strong>NEWS_API_KEY</strong> manquante. <a href="https://newsapi.org" target="_blank" style="text-decoration:underline;margin-left:4px">Obtenir une clé →</a></div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
         <button class="btn sm" id="vt-n" style="background:var(--accent);color:#fff" onclick="switchVTab('news')">📰 Actualités</button>
         <button class="btn g sm" id="vt-s" onclick="switchVTab('saved')">✅ Sélection <span id="sv-cnt-badge">0</span></button>
@@ -468,7 +397,6 @@ td{padding:10px 14px;font-size:13px;}
           <button class="btn p" onclick="saveArt('published')">✅ Publier</button>
         </div>
       </div>
-      <!-- URL IMPORT -->
       <div class="url-box">
         <div class="import-label">⚡ Import depuis URL ou texte</div>
         <div class="url-row">
@@ -481,19 +409,16 @@ td{padding:10px 14px;font-size:13px;}
           <button class="btn b sm" style="margin-top:6px" onclick="adaptPaste()">✨ Adapter en Brand Voice VU Magazine</button>
         </div>
       </div>
-      <!-- EDITOR SHELL -->
       <div class="ed-shell">
         <div class="vgap">
-          <!-- TITLE -->
           <div class="card" style="padding:14px">
-            <input class="inp" type="text" id="art-title" placeholder="Titre de l'article…" class="ed-title-input" oninput="onTitle(this.value)">
+            <input class="inp" type="text" id="art-title" placeholder="Titre de l'article…" oninput="onTitle(this.value)">
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
               <div class="slug-pill" id="slug-prev">vu-magazine.com/blog/</div>
               <button class="btn g sm" onclick="regenSlug()">↺</button>
             </div>
             <input type="hidden" id="art-slug"><input type="hidden" id="art-id">
           </div>
-          <!-- EDITOR -->
           <div class="ed-box">
             <div class="ed-tb">
               <button class="et" onclick="fmt('bold')"><strong>B</strong></button>
@@ -522,19 +447,16 @@ td{padding:10px 14px;font-size:13px;}
               <div class="voice-bar" style="margin-left:auto;border-top:none;padding:0;background:none"><div class="vdot"></div><span>Brand Voice · Stéphanie Jouin</span></div>
             </div>
           </div>
-          <!-- EXCERPT -->
           <div class="card" style="padding:14px">
             <div class="card-t">✍️ Extrait <button class="btn g sm" onclick="genExcerpt()">✨ Générer</button></div>
             <textarea class="ta" id="art-exc" placeholder="Résumé de l'article (160 car. max)…" style="min-height:60px" oninput="updateSEO()"></textarea>
             <div class="char-count" id="exc-c">0/160</div>
           </div>
-          <!-- FAQ -->
           <div class="card" style="padding:14px">
             <div class="card-t">❓ FAQ Schema.org (GEO) <div style="display:flex;gap:5px"><button class="btn g sm" onclick="genFAQ()">✨ Générer</button><button class="btn g sm" onclick="addFAQ()">+ Q&amp;R</button></div></div>
             <div id="faq-list"></div>
             <div id="faq-empty" class="hint-italic">Ajoutez 3-5 Q&R pour optimiser le GEO</div>
           </div>
-          <!-- AGENT SLOTS -->
           <div class="g2">
             <div class="card" style="padding:14px">
               <div class="card-t" style="color:var(--purple)">🧑‍🔬 Agent E-E-A-T</div>
@@ -548,7 +470,6 @@ td{padding:10px 14px;font-size:13px;}
             </div>
           </div>
         </div>
-        <!-- SIDEBAR -->
         <div class="vgap">
           <div class="card">
             <div class="card-t">🚀 Publication</div>
@@ -560,7 +481,7 @@ td{padding:10px 14px;font-size:13px;}
               <div class="field"><div class="lbl">Temps de lecture (min)</div><input class="inp" type="number" id="art-rt" value="5" min="1"></div>
             </div>
             <div class="sep-top-sm">
-              <button class="btn d sm" id="del-btn" style="display:none;width:100%" onclick="delArt()">🗑 Supprimer l'article</button>
+              <button class="btn d sm" id="del-btn" style="display:none;width:100%" onclick="delArt()">🗑 Archiver l'article</button>
             </div>
           </div>
           <div class="card">
@@ -755,7 +676,6 @@ td{padding:10px 14px;font-size:13px;}
               <div class="field"><div class="lbl">ALT SEO</div><input class="inp" type="text" id="m-alt" placeholder="Description…"><button class="btn g sm" style="margin-top:5px;width:100%" onclick="genMediaAlt()">✨ Générer ALT</button></div>
               <div class="field"><div class="lbl">URL</div><input class="inp" type="text" id="m-url" readonly style="font-family:var(--mono);font-size:11px"></div>
               <button class="btn p" style="width:100%" onclick="useMedia()">Utiliser dans l'article</button>
-              <div style="font-size:10px;color:var(--ink3);text-align:center">⚡ Compression + ALT SEO automatiques</div>
             </div>
           </div>
         </div>
@@ -773,25 +693,18 @@ td{padding:10px 14px;font-size:13px;}
           <button class="btn g sm" id="af-365" onclick="setAP(365)">Année</button>
         </div>
       </div>
-      <div class="g2" style="margin-bottom:18px" id="analytics-conn" style="display:none">
-        <div class="conn-card"><div style="font-size:36px">🔍</div><div style="font-weight:600;font-size:15px">Google Search Console</div><div style="font-size:12px;color:var(--ink3);max-width:220px">Positions SEO, CTR et impressions pour vu-magazine.com</div><button class="btn p" onclick="toast('Intégration GSC via Railway','info')">Connecter GSC</button></div>
-        <div class="conn-card"><div style="font-size:36px">📊</div><div style="font-weight:600;font-size:15px">Google Analytics 4</div><div style="font-size:12px;color:var(--ink3);max-width:220px">Trafic par article, sources, comportements</div><button class="btn b" onclick="toast('Intégration GA4 via Railway','info')">Connecter GA4</button></div>
+      <div class="stats4" style="margin-bottom:18px">
+        <div class="stat ac"><div class="stat-lbl">Vues totales</div><div class="stat-val" id="an-sessions">—</div><div class="stat-sub" style="color:var(--green)">All time</div></div>
+        <div class="stat gr"><div class="stat-lbl">Articles publiés</div><div class="stat-val" id="an-pub">—</div><div class="stat-sub">Total</div></div>
+        <div class="stat bl"><div class="stat-lbl">Ce mois</div><div class="stat-val" id="an-month">—</div><div class="stat-sub">Nouveaux articles</div></div>
+        <div class="stat pu"><div class="stat-lbl">Cette semaine</div><div class="stat-val" id="an-week">—</div><div class="stat-sub">Articles</div></div>
       </div>
-      <div id="analytics-demo">
-        <div class="stats4" style="margin-bottom:18px">
-          <div class="stat ac"><div class="stat-lbl">Sessions</div><div class="stat-val" id="an-sessions">—</div><div class="stat-sub" style="color:var(--green)">↑ +18% vs période préc.</div></div>
-          <div class="stat gr"><div class="stat-lbl">Impressions GSC</div><div class="stat-val" id="an-pub">—</div><div class="stat-sub" style="color:var(--green)">↑ +23%</div></div>
-          <div class="stat bl"><div class="stat-lbl">CTR Moyen</div><div class="stat-val" id="an-ctr">3.8%</div><div class="stat-sub" style="color:var(--yellow)">= Stable</div></div>
-          <div class="stat pu"><div class="stat-lbl">Position Moy.</div><div class="stat-val" id="an-pos">14.2</div><div class="stat-sub" style="color:var(--green)">↑ +2.1</div></div>
-        </div>
-        <div class="g2">
-          <div class="card"><div class="card-t">Top articles (sessions)</div><div id="analytics-top"><div class="loading"><div class="spin"></div></div></div></div>
-          <div class="card"><div class="card-t">Opportunités SEO</div>
-            <div class="vgap">
-              <div class="card-xs"><div style="font-size:12px;font-weight:600;margin-bottom:4px">⚡ 15 articles en position 11-20</div><div style="font-size:11px;color:var(--ink3)">Optimiser le E-E-A-T pour passer en Top 10</div><button class="btn g sm" style="margin-top:8px" onclick="quickAgent('eeat')">Agent E-E-A-T →</button></div>
-              <div class="card-xs"><div style="font-size:12px;font-weight:600;margin-bottom:4px">📊 CTR faible sur 8 articles</div><div style="font-size:11px;color:var(--ink3)">Meta titles non optimisés (CTR &lt; 2%)</div><button class="btn g sm" style="margin-top:8px" onclick="go('optimize')">Optimiser →</button></div>
-              <div class="card-xs"><div style="font-size:12px;font-weight:600;margin-bottom:4px">🔗 22 articles sans maillage interne</div><div style="font-size:11px;color:var(--ink3)">Renforcez le cocon sémantique</div><button class="btn g sm" style="margin-top:8px" onclick="quickAgent('links')">Maillage →</button></div>
-            </div>
+      <div class="g2">
+        <div class="card"><div class="card-t">Top articles (vues)</div><div id="analytics-top"><div class="loading"><div class="spin"></div></div></div></div>
+        <div class="card"><div class="card-t">Opportunités SEO</div>
+          <div class="vgap">
+            <div class="card-xs"><div style="font-size:12px;font-weight:600;margin-bottom:4px">⚡ Articles à optimiser</div><div style="font-size:11px;color:var(--ink3)">Améliorer le E-E-A-T pour passer en Top 10</div><button class="btn g sm" style="margin-top:8px" onclick="quickAgent('eeat')">Agent E-E-A-T →</button></div>
+            <div class="card-xs"><div style="font-size:12px;font-weight:600;margin-bottom:4px">🔗 Maillage interne</div><div style="font-size:11px;color:var(--ink3)">Renforcez le cocon sémantique</div><button class="btn g sm" style="margin-top:8px" onclick="quickAgent('links')">Maillage →</button></div>
           </div>
         </div>
       </div>
@@ -805,24 +718,16 @@ td{padding:10px 14px;font-size:13px;}
           <div class="set-ni on" onclick="switchSet('general',this)">Général</div>
           <div class="set-ni" onclick="switchSet('brand',this)">Brand Voice</div>
           <div class="set-ni" onclick="switchSet('api',this)">API & Intégrations</div>
-
         </div>
         <div>
           <div class="set-panel" id="set-general"><div class="set-section">Général</div><div class="vgap"><div class="field"><div class="lbl">Nom du site</div><input class="inp" value="VU Magazine" readonly></div><div class="field"><div class="lbl">URL production</div><input class="inp" value="https://vu-magazine.com" readonly></div></div></div>
           <div class="set-panel" id="set-brand" style="display:none"><div class="set-section">Brand Voice · Stéphanie Jouin</div><div class="vgap"><div class="field"><div class="lbl">Description du ton</div><textarea class="ta" id="bv-desc" style="min-height:110px">Expert, direct et factuel. Spécialiste Social Media depuis 12 ans. Ancré terrain France. Phrases percutantes, données vérifiées, exemples concrets. Anglicismes Social Media acceptés.</textarea></div><div class="field"><div class="lbl">Phrases types</div><textarea class="ta" id="bv-ex" style="min-height:80px">La portée organique Instagram a chuté de 42% en 2026.
 Les Reels courts restent le levier le plus efficace.
 Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button class="btn p" onclick="toast('Brand Voice sauvegardé ✅')">💾 Sauvegarder</button></div></div>
-          <div class="set-panel" id="set-api" style="display:none"><div class="set-section">API & Intégrations</div><div class="vgap"><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Claude API</div><div style="font-size:11px;color:var(--ink3)">Variable Railway : ANTHROPIC_API_KEY</div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">NewsAPI</div><div style="font-size:11px;color:var(--ink3)">Variable : NEWS_API_KEY · <a href="https://newsapi.org" target="_blank" style="color:var(--blue)">newsapi.org</a></div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Unsplash</div><div style="font-size:11px;color:var(--ink3)">Variable : UNSPLASH_KEY · <a href="https://unsplash.com/developers" target="_blank" style="color:var(--blue)">unsplash.com</a></div></div></div></div>
-
-          
-
-          
-
-          
+          <div class="set-panel" id="set-api" style="display:none"><div class="set-section">API & Intégrations</div><div class="vgap"><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Claude API</div><div style="font-size:11px;color:var(--ink3)">Variable Railway : ANTHROPIC_API_KEY</div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">NewsAPI</div><div style="font-size:11px;color:var(--ink3)">Variable : NEWS_API_KEY · <a href="https://newsapi.org" target="_blank" style="color:var(--blue)">newsapi.org</a></div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Unsplash</div><div style="font-size:11px;color:var(--ink3)">Variable : UNSPLASH_ACCESS_KEY · <a href="https://unsplash.com/developers" target="_blank" style="color:var(--blue)">unsplash.com</a></div></div><div class="card-sm"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Pexels</div><div style="font-size:11px;color:var(--ink3)">Variable : PEXELS_API_KEY · <a href="https://www.pexels.com/api/" target="_blank" style="color:var(--blue)">pexels.com</a></div></div></div></div>
         </div>
       </div>
     </div>
-
 
     <!-- GLOSSAIRE -->
     <div class="page" id="pg-glossaire">
@@ -831,12 +736,7 @@ Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button cla
         <button class="btn p" onclick="openGlossModal()">+ Nouveau terme</button>
       </div>
       <div class="tbl-wrap">
-        <div class="tbl-tb">
-          <div class="srch">
-            <span class="srch-ico">🔍</span>
-            <input class="srch-inp" type="text" placeholder="Rechercher un terme…" oninput="filterGlossary(this.value)">
-          </div>
-        </div>
+        <div class="tbl-tb"><div class="srch"><span class="srch-ico">🔍</span><input class="srch-inp" type="text" placeholder="Rechercher un terme…" oninput="filterGlossary(this.value)"></div></div>
         <div id="glossary-list"><div class="loading"><div class="spin"></div></div></div>
       </div>
     </div>
@@ -848,121 +748,25 @@ Ce que personne ne vous dit sur l'algorithme TikTok.</textarea></div><button cla
         <button class="btn p" onclick="openPartnerModal()">+ Nouveau partenaire</button>
       </div>
       <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Nom</th><th>Catégorie</th><th>Badge</th><th>Note</th><th>Statut</th><th>Actions</th></tr></thead>
-          <tbody id="partners-list"><tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Nom</th><th>Catégorie</th><th>Badge</th><th>Note</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="partners-list"><tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr></tbody></table>
       </div>
     </div>
 
-    <!-- TICKER -->
-
-const PLATFORM_COLORS = {
-  'TikTok': '#aaa', 'Instagram': '#E1306C', 'Facebook': '#1877F2',
-  'LinkedIn': '#0A66C2', 'YouTube': '#FF0000', 'X': '#888',
-  'Snapchat': '#FFFC00', 'Pinterest': '#E60023', 'Reddit': '#FF4500',
-};
-
-// Charge le ticker depuis la DB au lieu du state local
-async function loadTickerFromAPI() {
-  try {
-    const items = await api('GET', '/api/ticker');
-    if (items && items.length) {
-      S.ticker = items.map(i => ({ id: i.id, cat: i.category, color: i.color, title: i.title, is_active: i.is_active, sort_order: i.sort_order }));
-    }
-  } catch(e) {
-    console.warn('Ticker API unavailable, using local state', e.message);
-  }
-  renderTicker();
-}
-
-function renderTicker() {
-  const container = document.getElementById('ticker-items');
-  if (!container) return;
-  if (!S.ticker.length) {
-    container.innerHTML = '<div class="empty" style="padding:24px">Aucun item. Cliquez "+ Ajouter" pour commencer.</div>';
-    return;
-  }
-  container.innerHTML = S.ticker.map((item, i) => `
-    <div class="tick-row" draggable="true">
-      <div style="width:10px;height:10px;border-radius:50%;background:${item.color||'#fff'};flex-shrink:0"></div>
-      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);padding:4px 8px;font-size:12px;cursor:pointer"
-        onchange="updateTickerCat(${i},this.value)">
-        ${['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].map(p =>
-          `<option value="${p}" ${item.cat===p?'selected':''}>${p}</option>`
-        ).join('')}
-        <option value="autre" ${!['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].includes(item.cat)?'selected':''}>Autre…</option>
-      </select>
-      <input type="text" value="${(item.title||'').replace(/"/g,'&quot;')}"
-        style="flex:1;background:transparent;border:none;color:var(--ink);font-size:13px;padding:4px"
-        onchange="updateTickerTitle(${i},this.value)" placeholder="Titre de l'actu…">
-      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink2);padding:4px 6px;font-size:11px;cursor:pointer"
-        onchange="updateTickerActive(${i},this.value==='1')">
-        <option value="1" ${item.is_active!==false?'selected':''}>Actif</option>
-        <option value="0" ${item.is_active===false?'selected':''}>Inactif</option>
-      </select>
-      <button class="tick-del" onclick="removeTicker(${i})">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+    <!-- TICKER — page correctement structurée avec HTML valide -->
+    <div class="page" id="pg-ticker">
+      <div class="sec-hd">
+        <div><div class="sec-ttl">Ticker <span>live</span></div><div class="sec-sub">Bandeau défilant affiché sur VU Magazine · 8 items max</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn g" onclick="addTickerItem()">+ Ajouter</button>
+          <button class="btn p" onclick="saveTicker()">💾 Sauvegarder</button>
+        </div>
+      </div>
+      <div id="ticker-items" class="vgap" style="gap:6px"><div class="loading"><div class="spin"></div></div></div>
+      <div style="margin-top:12px;font-size:12px;color:var(--ink3);padding:10px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border)">
+        ℹ️ Les modifications sont sauvegardées en base de données et reflétées en temps réel sur VU Magazine.
+      </div>
     </div>
-  `).join('');
-}
-
-function updateTickerCat(i, cat) {
-  S.ticker[i].cat = cat;
-  S.ticker[i].color = PLATFORM_COLORS[cat] || '#888';
-  renderTicker();
-}
-
-function updateTickerTitle(i, title) {
-  S.ticker[i].title = title;
-}
-
-function updateTickerActive(i, active) {
-  S.ticker[i].is_active = active;
-}
-
-async function addTickerItem() {
-  if (S.ticker.length >= 8) return toast('Maximum 8 items', 'i');
-  const newItem = { cat: 'Instagram', color: '#E1306C', title: '', is_active: true, sort_order: S.ticker.length };
-  try {
-    const saved = await api('POST', '/api/ticker', { category: newItem.cat, color: newItem.color, title: newItem.title, is_active: true, sort_order: newItem.sort_order });
-    S.ticker.push({ id: saved.id, ...newItem });
-  } catch {
-    S.ticker.push(newItem);
-  }
-  renderTicker();
-}
-
-async function removeTicker(i) {
-  const item = S.ticker[i];
-  if (item && item.id) {
-    try { await api('DELETE', `/api/ticker/${item.id}`); } catch {}
-  }
-  S.ticker.splice(i, 1);
-  renderTicker();
-  toast('Item supprimé');
-}
-
-async function saveTicker() {
-  toast('💾 Sauvegarde en cours…', 'i');
-  let saved = 0, errors = 0;
-  for (let i = 0; i < S.ticker.length; i++) {
-    const item = S.ticker[i];
-    const body = { category: item.cat, color: item.color || PLATFORM_COLORS[item.cat] || '#888', title: item.title, is_active: item.is_active !== false, sort_order: i };
-    try {
-      if (item.id) {
-        await api('PUT', `/api/ticker/${item.id}`, body);
-      } else {
-        const r = await api('POST', '/api/ticker', body);
-        S.ticker[i].id = r.id;
-      }
-      saved++;
-    } catch { errors++; }
-  }
-  if (errors) toast(`${saved} sauvegardés, ${errors} erreurs`, 'e');
-  else toast(`✅ Ticker sauvegardé (${saved} items) — VU Magazine mis à jour en temps réel !`);
-}
 
     <!-- AGENTS -->
     <div class="page" id="pg-agents">
@@ -988,19 +792,15 @@ async function saveTicker() {
       <div id="ag-res-wrap" style="display:none">
         <div class="card"><div class="card-t"><span id="ag-res-ttl">Résultat</span><div style="display:flex;gap:6px"><button class="btn g sm" onclick="cpRes('ag-res-body')">📋 Copier</button><button class="btn g sm" onclick="document.getElementById('ag-res-wrap').style.display='none'">✕</button></div></div><div id="ag-res-body" class="result-body-lg"></div></div>
       </div>
+    </div>
 
-  </div>
-
-</div><!-- /page-scroll -->
+  </div><!-- /page-scroll -->
 </div><!-- /main -->
 
 <!-- MODALS -->
 <div class="modal-ov" id="gloss-modal">
   <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-ttl" id="gloss-modal-title">Nouveau terme</div>
-      <button class="modal-x" onclick="closeMod('gloss-modal')">✕</button>
-    </div>
+    <div class="modal-hd"><div class="modal-ttl" id="gloss-modal-title">Nouveau terme</div><button class="modal-x" onclick="closeMod('gloss-modal')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="gloss-id">
       <div class="vgap">
@@ -1009,29 +809,21 @@ async function saveTicker() {
           <div class="field"><div class="lbl">Statut</div><select class="sel" id="gloss-status"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
         </div>
         <div class="field"><div class="lbl">Définition *</div><textarea class="ta" id="gloss-def" placeholder="Définition claire et concise…" style="min-height:100px"></textarea></div>
-        <div class="field"><div class="lbl">Exemple concret</div><textarea class="ta" id="gloss-example" placeholder="Ex: Un post Instagram avec 10 000 followers et 500 impressions organiques…" style="min-height:70px"></textarea></div>
+        <div class="field"><div class="lbl">Exemple concret</div><textarea class="ta" id="gloss-example" style="min-height:70px"></textarea></div>
         <div class="g2">
-          <div class="field"><div class="lbl">Plateformes (séparées par virgule)</div><input class="inp" type="text" id="gloss-platforms" placeholder="Instagram, TikTok, LinkedIn"></div>
-          <div class="field"><div class="lbl">Termes liés</div><input class="inp" type="text" id="gloss-related" placeholder="Impressions, Portée, Engagement"></div>
+          <div class="field"><div class="lbl">Plateformes (virgule)</div><input class="inp" type="text" id="gloss-platforms" placeholder="Instagram, TikTok"></div>
+          <div class="field"><div class="lbl">Termes liés</div><input class="inp" type="text" id="gloss-related" placeholder="Impressions, Portée"></div>
         </div>
         <div class="field"><div class="lbl">Article lié (slug)</div><input class="inp" type="text" id="gloss-article" placeholder="ex: algorithme-instagram-2026"></div>
       </div>
     </div>
-    <div class="modal-ft">
-      <button class="btn g" onclick="closeMod('gloss-modal')">Annuler</button>
-      <button class="btn p" onclick="saveGlossary()">Sauvegarder</button>
-    </div>
+    <div class="modal-ft"><button class="btn g" onclick="closeMod('gloss-modal')">Annuler</button><button class="btn p" onclick="saveGlossary()">Sauvegarder</button></div>
   </div>
 </div>
 
-<!-- ══ MODAL PARTENAIRE ═════════════════════════════════════════ -->
-
 <div class="modal-ov" id="partner-modal">
   <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-ttl" id="partner-modal-title">Nouveau partenaire</div>
-      <button class="modal-x" onclick="closeMod('partner-modal')">✕</button>
-    </div>
+    <div class="modal-hd"><div class="modal-ttl" id="partner-modal-title">Nouveau partenaire</div><button class="modal-x" onclick="closeMod('partner-modal')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="partner-id">
       <div class="vgap">
@@ -1043,7 +835,7 @@ async function saveTicker() {
           <div class="field"><div class="lbl">Badge</div><select class="sel" id="partner-badge"><option value="Affilié">Affilié</option><option value="Partenaire">Partenaire</option><option value="Recommandé">Recommandé</option><option value="Sponsorisé">Sponsorisé</option></select></div>
           <div class="field"><div class="lbl">Note (/5)</div><input class="inp" type="number" id="partner-rating" min="0" max="5" step="0.1" placeholder="4.5"></div>
         </div>
-        <div class="field"><div class="lbl">Description courte</div><textarea class="ta" id="partner-desc" placeholder="1-2 phrases de présentation…" style="min-height:70px"></textarea></div>
+        <div class="field"><div class="lbl">Description courte</div><textarea class="ta" id="partner-desc" style="min-height:70px"></textarea></div>
         <div class="g2">
           <div class="field"><div class="lbl">URL affilié</div><input class="inp" type="url" id="partner-affiliate" placeholder="https://…"></div>
           <div class="field"><div class="lbl">Site web</div><input class="inp" type="url" id="partner-website" placeholder="https://…"></div>
@@ -1052,19 +844,13 @@ async function saveTicker() {
           <div class="field"><div class="lbl">Logo URL</div><input class="inp" type="url" id="partner-logo" placeholder="https://…"></div>
           <div class="field"><div class="lbl">Statut</div><select class="sel" id="partner-status"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
         </div>
-        <div class="field"><div class="lbl">Points forts (séparés par |)</div><input class="inp" type="text" id="partner-pros" placeholder="Interface intuitive|Templates pro|Collaboratif"></div>
-        <div class="field"><div class="lbl">Inconvénients (séparés par |)</div><input class="inp" type="text" id="partner-cons" placeholder="Fonctions avancées payantes|Export limité"></div>
+        <div class="field"><div class="lbl">Points forts (séparés par |)</div><input class="inp" type="text" id="partner-pros"></div>
+        <div class="field"><div class="lbl">Inconvénients (séparés par |)</div><input class="inp" type="text" id="partner-cons"></div>
       </div>
     </div>
-    <div class="modal-ft">
-      <button class="btn g" onclick="closeMod('partner-modal')">Annuler</button>
-      <button class="btn p" onclick="savePartner()">Sauvegarder</button>
-    </div>
+    <div class="modal-ft"><button class="btn g" onclick="closeMod('partner-modal')">Annuler</button><button class="btn p" onclick="savePartner()">Sauvegarder</button></div>
   </div>
 </div>
-
-<!-- ══ TOASTS ══════════════════════════════════════════════════ -->
-
 
 <div class="modal-ov" id="modal-sched"><div class="modal" style="max-width:400px"><div class="modal-hd"><div class="modal-ttl">⏰ Planifier</div><button class="modal-x" onclick="closeMod('modal-sched')">✕</button></div><div class="modal-body"><div class="field"><div class="lbl">Date et heure de publication</div><input class="inp" type="datetime-local" id="sched-modal-dt"></div><div class="hint-box">L'article sera publié automatiquement à la date indiquée.</div></div><div class="modal-ft"><button class="btn g" onclick="closeMod('modal-sched')">Annuler</button><button class="btn p" onclick="confirmSched()">⏰ Planifier</button></div></div></div>
 
@@ -1079,10 +865,8 @@ async function saveTicker() {
   <div class="media-grid" id="modal-media-grid"><div class="loading" style="grid-column:1/-1"><div class="spin"></div></div></div>
 </div><div class="modal-ft"><button class="btn g" onclick="closeMod('modal-media')">Annuler</button><button class="btn p" onclick="confirmMedia()">Utiliser</button></div></div></div>
 
-<div class="modal-ov" id="modal-kcard"><div class="modal" style="max-width:460px"><div class="modal-hd"><div class="modal-ttl" id="kmod-ttl">Modifier la carte</div><button class="modal-x" onclick="closeMod('modal-kcard')">✕</button></div><div class="modal-body"><input type="hidden" id="kmod-id"><div class="vgap"><div class="field"><div class="lbl">Titre</div><input class="inp" type="text" id="kmod-title" placeholder="Titre de l'article…"></div><div class="g2"><div class="field"><div class="lbl">Catégorie</div><select class="sel" id="kmod-cat"></select></div><div class="field"><div class="lbl">Statut / Colonne</div><select class="sel" id="kmod-col"><option value="ideas">💡 Idée</option><option value="draft">📝 Brouillon</option><option value="review">🔍 Relecture</option><option value="scheduled">⏰ Programmé</option><option value="published">✅ Publié</option></select></div></div><div class="field"><div class="lbl">Date cible</div><input class="inp" type="date" id="kmod-date"></div></div></div><div class="modal-ft"><button class="btn d sm" onclick="delKCard()">Supprimer</button><button class="btn g" onclick="closeMod('modal-kcard')">Annuler</button><button class="btn p" onclick="saveKCard()">Sauvegarder</button></div></div></div>
+<div class="modal-ov" id="modal-kcard"><div class="modal" style="max-width:460px"><div class="modal-hd"><div class="modal-ttl" id="kmod-ttl">Modifier la carte</div><button class="modal-x" onclick="closeMod('modal-kcard')">✕</button></div><div class="modal-body"><input type="hidden" id="kmod-id"><div class="vgap"><div class="field"><div class="lbl">Titre</div><input class="inp" type="text" id="kmod-title"></div><div class="g2"><div class="field"><div class="lbl">Catégorie</div><select class="sel" id="kmod-cat"></select></div><div class="field"><div class="lbl">Statut / Colonne</div><select class="sel" id="kmod-col"><option value="ideas">💡 Idée</option><option value="draft">📝 Brouillon</option><option value="review">🔍 Relecture</option><option value="scheduled">⏰ Programmé</option><option value="published">✅ Publié</option></select></div></div><div class="field"><div class="lbl">Date cible</div><input class="inp" type="date" id="kmod-date"></div></div></div><div class="modal-ft"><button class="btn d sm" onclick="delKCard()">Supprimer</button><button class="btn g" onclick="closeMod('modal-kcard')">Annuler</button><button class="btn p" onclick="saveKCard()">Sauvegarder</button></div></div></div>
 
-
-<!-- AI FLOAT -->
 <div class="ai-float" id="ai-float">
   <div class="section-accent-label">✦ Assistant IA inline</div>
   <input class="ai-fl-inp" type="text" id="ai-fl-inp" placeholder="Décris ce que tu veux générer…" onkeydown="if(event.key==='Enter')runFloat()">
@@ -1097,44 +881,36 @@ async function saveTicker() {
 <div class="toasts" id="toasts"></div>
 
 <script>
-
-
-// ─ STATE ──────────────────────────────────────────────────────────
-// Legacy globals from v2 modules
 let allGlossary = [], allPartners = [];
 
 const S = {
   arts:[], cats:[], auths:[], kanban:[], saved:[], agArt:null, optArt:null, liArt:null, liSched:[],
   currentId:null, edMode:'v', mSrc:'unsplash', mSel:null, mCtx:'cover',
-  calY:2026, calM:3, faq:[], dragCard:null, ap:7
+  calY:2026, calM:3, faq:[], dragCard:null, ap:7,
+  ticker:[] // FIX: vide — chargé depuis la DB via loadTickerFromAPI()
 };
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const MONTHS_S = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-const PAGE_NAMES = {dashboard:'Dashboard', glossaire:'Glossaire Social Media', partenaires:'Partenaires & Affiliés', ticker:'Ticker live', veille:'Veille', planning:'Planning éditorial', 'new-article':'Nouvel article', optimize:'Optimiser', linkedin:'Agent LinkedIn', articles:'Articles', media:'Médiathèque', analytics:'Dashboard SEO', glossaire:'Glossaire Social Media', partenaires:'Partenaires & Affiliés', ticker:'Ticker live', settings:'Paramètres', agents:'Agents IA'};
+const PAGE_NAMES = {dashboard:'Dashboard',glossaire:'Glossaire Social Media',partenaires:'Partenaires & Affiliés',ticker:'Ticker live',veille:'Veille',planning:'Planning éditorial','new-article':'Nouvel article',optimize:'Optimiser',linkedin:'Agent LinkedIn',articles:'Articles',media:'Médiathèque',analytics:'Dashboard SEO',settings:'Paramètres',agents:'Agents IA'};
 
-// ─ API ────────────────────────────────────────────────────────────
 async function api(m, u, b) {
   try {
     const r = await fetch(u, {method:m, headers:{'Content-Type':'application/json'}, body:b?JSON.stringify(b):undefined});
     const ct = r.headers.get('content-type') || '';
     if (!ct.includes('application/json')) {
-      const txt = await r.text();
-      throw new Error(`Serveur indisponible (${r.status}) — vérifiez Railway`);
+      const t = await r.text();
+      throw new Error(`Serveur indisponible (${r.status})`);
     }
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || `Erreur ${r.status}`);
     return d;
   } catch(e) {
-    if (e.name === 'TypeError' && e.message.includes('fetch')) {
-      toast('Impossible de joindre le serveur', 'e');
-    } else {
-      toast(e.message, 'e');
-    }
+    if (e.name === 'TypeError' && e.message.includes('fetch')) toast('Impossible de joindre le serveur', 'e');
+    else toast(e.message, 'e');
     throw e;
   }
 }
 
-// ─ TOAST ─────────────────────────────────────────────────────────
 function toast(msg, type='s') {
   const w = document.getElementById('toasts');
   const ico = {s:'✅', e:'❌', i:'ℹ️'};
@@ -1145,10 +921,14 @@ function toast(msg, type='s') {
   setTimeout(() => d.remove(), 3500);
 }
 
-// ─ UTILS ─────────────────────────────────────────────────────────
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function txt(id, v) { const e = document.getElementById(id); if(e) e.textContent = v; }
 function fmtFr(s) { if(!s) return ''; const d=new Date(s); return `${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}`; }
+function escHtml(s) { return esc(s); }
+function escAttr(s) { return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+function closeModal(id) { closeMod(id); }
+function goTo(page) { go(page); }
+
 function mdHtml(md) {
   return (md||'')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -1160,7 +940,7 @@ function mdHtml(md) {
     .replace(/\n\n/g,'</p><p>').replace(/^(?!<[hulibtps])(.+)$/gm,'<p>$1</p>').replace(/<p><\/p>/g,'');
 }
 
-// ─ NAVIGATION ────────────────────────────────────────────────────
+// FIX: go() — ticker appelle loadTickerFromAPI() et non renderTicker()
 function go(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-it').forEach(n => n.classList.remove('on'));
@@ -1180,17 +960,15 @@ function go(page) {
   else if (page==='analytics') loadAnalytics();
   else if (page==='glossaire') loadGlossary();
   else if (page==='partenaires') loadPartners();
-  else if (page==='ticker') renderTicker();
+  else if (page==='ticker') loadTickerFromAPI(); // FIX: API au lieu de renderTicker()
 }
 
-// ─ DATE ──────────────────────────────────────────────────────────
 function initDate() {
   const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const d = new Date();
   txt('dash-date', `${days[d.getDay()]} ${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}`);
 }
 
-// ─ DASHBOARD ─────────────────────────────────────────────────────
 async function loadDash() {
   try {
     const d = await api('GET', '/api/stats');
@@ -1206,21 +984,21 @@ async function loadDash() {
       <tr><td class="td-main">${esc(a.title)}<small>${a.slug}</small></td>
       <td><span class="badge ${a.status==='published'?'b-pub':a.status==='scheduled'?'b-sch':'b-dft'}">${a.status==='published'?'✅':a.status==='scheduled'?'⏰':'📝'}</span></td>
       <td><button class="btn g sm" onclick="editArt(${a.id},'${a.status}')">Éditer</button></td></tr>`).join('');
-    // News preview
     const dn = document.getElementById('dash-news');
     if (dn) {
       try {
         const nd = await api('GET', '/api/news');
         dn.innerHTML = (nd.articles||[]).slice(0,4).map(n => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:10px;display:flex;gap:10px">
-            <div style="flex:1;min-width:0"><div class="news-src">${esc(n.source)}</div><div class="news-ttl" style="font-size:12px">${esc(n.title)}</div><div class="news-acts"><button class="btn g sm" style="font-size:11px" onclick="useInspiration(${JSON.stringify(n).replace(/"/g,'&quot;')})">✍️</button></div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:10px">
+            <div class="news-src">${esc(n.source)}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--ink)">${esc(n.title)}</div>
+            <div class="news-acts"><button class="btn g sm" style="font-size:11px" onclick="useInspiration(${JSON.stringify(n).replace(/"/g,'&quot;')})">✍️</button></div>
           </div>`).join('');
       } catch { dn.innerHTML = '<div style="font-size:12px;color:var(--ink3)">Configurez NEWS_API_KEY</div>'; }
     }
   } catch { txt('status-txt', 'Erreur DB'); }
 }
 
-// ─ META (cats + authors) ─────────────────────────────────────────
 async function loadMeta() {
   if (S.cats.length) return;
   const [cats, auths] = await Promise.all([api('GET','/api/categories'), api('GET','/api/authors')]);
@@ -1239,7 +1017,6 @@ async function loadMeta() {
   });
 }
 
-// ─ ARTICLES ──────────────────────────────────────────────────────
 async function loadArts() {
   await loadMeta();
   const search = document.getElementById('art-srch')?.value||'';
@@ -1261,17 +1038,12 @@ async function loadArts() {
     </tr>`).join('') : '<tr><td colspan="6"><div class="empty">Aucun article</div></td></tr>';
 }
 
-// ─ EDITOR ────────────────────────────────────────────────────────
 async function initEd(id=null) {
   await loadMeta();
   S.currentId = id; S.faq = [];
-  txt('ed-page-ttl', id ? 'Modifier l\'<span style="color:var(--accent)">article</span>' : 'Nouvel <span style="color:var(--accent)">article</span>');
   const delBtn = document.getElementById('del-btn');
-
-  // Populate selects from S.cats/auths
   const catSel = document.getElementById('art-cat');
   if (catSel) { catSel.innerHTML = '<option value="">-- Catégorie --</option>'; S.cats.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; catSel.appendChild(o); }); }
-
   if (id) {
     if(delBtn) delBtn.style.display='';
     const a = await api('GET', `/api/articles/${id}`);
@@ -1298,17 +1070,17 @@ async function initEd(id=null) {
   renderFAQ(); setMode('v'); updateSEO(); updateWC();
   document.getElementById('art-status').onchange = function(){ onStatusChange(this.value); };
 }
+
 async function editArt(id, status) {
   if (status === 'published' || status === 'scheduled') {
-    go('optimize');
-    await initOpt();
+    go('optimize'); await initOpt();
     const sel = document.getElementById('opt-sel');
     if (sel) { sel.value = id; await loadOptArt(); }
   } else {
-    go('new-article');
-    await initEd(id);
+    go('new-article'); await initEd(id);
   }
 }
+
 async function onTitle(v) {
   updateSEO();
   if (!S.currentId && v.length > 3) {
@@ -1319,44 +1091,35 @@ async function regenSlug() {
   const t=document.getElementById('art-title').value; if(!t) return toast('Saisissez un titre','i');
   const {slug}=await api('POST','/api/slug',{title:t}); document.getElementById('art-slug').value=slug; txt('slug-prev',`vu-magazine.com/blog/${slug}`); updateSEO();
 }
-function onStatusChange(v) {
-  const sw = document.getElementById('sched-wrap'); if(sw) sw.style.display = v==='scheduled'?'':'none';
-}
+function onStatusChange(v) { const sw=document.getElementById('sched-wrap'); if(sw) sw.style.display=v==='scheduled'?'':'none'; }
+
 async function saveArt(statusOverride) {
   const title=document.getElementById('art-title').value.trim(); const slug=document.getElementById('art-slug').value.trim();
   if(!title) return toast('Titre obligatoire','e'); if(!slug) return toast('Slug obligatoire','e');
   const content = S.edMode==='v' ? document.getElementById('art-ed').innerHTML : document.getElementById('art-raw').value;
-  const body = {
-    title, slug, excerpt:document.getElementById('art-exc').value,
-    content, status:statusOverride||document.getElementById('art-status').value,
-    category_id:document.getElementById('art-cat').value||null,
-    author_id:document.getElementById('art-auth').value||null,
-    read_time_min:parseInt(document.getElementById('art-rt').value)||5,
-    meta_title:document.getElementById('art-mt').value,
-    meta_description:document.getElementById('art-md').value,
-    cover_image_url:document.getElementById('art-cover').value, faq:S.faq
-  };
+  const body = {title,slug,excerpt:document.getElementById('art-exc').value,content,status:statusOverride||document.getElementById('art-status').value,category_id:document.getElementById('art-cat').value||null,author_id:document.getElementById('art-auth').value||null,read_time_min:parseInt(document.getElementById('art-rt').value)||5,meta_title:document.getElementById('art-mt').value,meta_description:document.getElementById('art-md').value,cover_image_url:document.getElementById('art-cover').value,faq:S.faq};
   const id=document.getElementById('art-id').value;
   const r = id ? await api('PUT',`/api/articles/${id}`,body) : await api('POST','/api/articles',body);
   if(r){ document.getElementById('art-id').value=r.id; S.currentId=r.id; document.getElementById('del-btn').style.display=''; }
   toast(statusOverride==='published'?'✨ Article publié !':'💾 Brouillon sauvegardé');
 }
+
 async function delArt() {
   const id=document.getElementById('art-id').value;
-  if(!id||!confirm('Supprimer cet article définitivement ?')) return;
-  await api('DELETE',`/api/articles/${id}`); toast('Article supprimé'); go('articles');
+  if(!id||!confirm('Archiver cet article ?')) return;
+  await api('DELETE',`/api/articles/${id}`); toast('Article archivé'); go('articles');
 }
+
 async function dupArt(id) {
   const a=await api('GET',`/api/articles/${id}`);
-  const b={...a,title:'[COPIE] '+a.title,slug:a.slug+'-copie',status:'draft',published_at:null};
+  const b={...a,title:'[COPIE] '+a.title,slug:a.slug+'-copie',status:'draft'};
   delete b.id; await api('POST','/api/articles',b); toast('Article dupliqué ✅'); loadArts();
 }
 
-// Editor tools
 function fmt(cmd){if(S.edMode!=='v')return;document.getElementById('art-ed').focus();document.execCommand(cmd,false,null);updateWC();}
 function fmtB(tag){if(S.edMode!=='v')return;document.getElementById('art-ed').focus();document.execCommand('formatBlock',false,tag);updateWC();}
 function insLink(){const u=prompt('URL :');if(u){document.getElementById('art-ed').focus();document.execCommand('createLink',false,u);}}
-function insVideo(){const u=prompt('URL YouTube/Vimeo :');if(!u)return;const id2=u.match(/(?:youtu.be\/|v=)([^&]+)/)?.[1]||u;document.getElementById('art-ed').focus();document.execCommand('insertHTML',false,`<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0"><iframe src="https://www.youtube.com/embed/${id2}" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>`);}
+function insVideo(){const u=prompt('URL YouTube :');if(!u)return;const id2=u.match(/(?:youtu.be\/|v=)([^&]+)/)?.[1]||u;document.getElementById('art-ed').focus();document.execCommand('insertHTML',false,`<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0"><iframe src="https://www.youtube.com/embed/${id2}" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>`);}
 function setMode(m){
   S.edMode=m;
   const v=document.getElementById('art-ed'),r=document.getElementById('art-raw');
@@ -1389,12 +1152,10 @@ function updateSEO(){
   let sc=0;
   const cc=document.getElementById('seo-checks'); if(!cc)return;
   cc.innerHTML=SEO_C.map(([fn,lbl])=>{const ok=fn();if(ok)sc++;return `<div class="seo-chk ${ok?'ok':'bad'}"><span>${ok?'✅':'○'}</span> ${lbl}</div>`;}).join('');
-  const pct=Math.round(sc/SEO_C.length*100);
-  const fb=document.getElementById('seo-fill'); if(fb){fb.style.width=pct+'%';fb.style.background=sc>=6?'var(--green)':sc>=4?'var(--yellow)':'var(--accent)';}
+  const fb=document.getElementById('seo-fill'); if(fb){fb.style.width=Math.round(sc/SEO_C.length*100)+'%';fb.style.background=sc>=6?'var(--green)':sc>=4?'var(--yellow)':'var(--accent)';}
   txt('seo-val',`${sc}/${SEO_C.length}`);
 }
 
-// FAQ
 function addFAQ(){S.faq.push({q:'',a:''});renderFAQ();updateSEO();}
 function remFAQ(i){S.faq.splice(i,1);renderFAQ();updateSEO();}
 function updFAQ(i,f,v){if(S.faq[i])S.faq[i][f]=v;updateSEO();}
@@ -1413,13 +1174,7 @@ function renderFAQ(){
     </div>`).join('');
 }
 
-// Cover
-function setCoverPrev(url){
-  const el=document.getElementById('cov-prev'); if(el) el.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
-  document.getElementById('art-cover').value=url;
-}
-
-// Schedule
+function setCoverPrev(url){ const el=document.getElementById('cov-prev'); if(el) el.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`; document.getElementById('art-cover').value=url; }
 function openSchedule(){closeAllModals();document.getElementById('modal-sched').classList.add('open');}
 function confirmSched(){
   const dt=document.getElementById('sched-modal-dt').value; if(!dt) return toast('Choisissez une date','e');
@@ -1427,14 +1182,10 @@ function confirmSched(){
   closeMod('modal-sched'); saveArt('scheduled');
 }
 
-// URL Import
 async function importUrl(){
   const url=document.getElementById('import-url').value.trim(); if(!url) return toast('Entrez une URL','i');
   toast('⏳ Import en cours…','i');
-  try {
-    const r=await api('POST','/api/agent',{type:'actualites',title:`Adapter depuis: ${url}`,keyword:url,content:`Récupère, traduis en français et adapte en Brand Voice VU Magazine (Stéphanie Jouin, expert Social Media France, direct, factuel) cet article : ${url}`});
-    if(r.result){ document.getElementById('art-ed').innerHTML=mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Article importé !'); }
-  } catch { toast('Vérifiez ANTHROPIC_API_KEY','e'); }
+  try { const r=await api('POST','/api/agent',{type:'actualites',title:`Adapter depuis: ${url}`,keyword:url,content:`Récupère et adapte en Brand Voice VU Magazine : ${url}`}); if(r.result){ document.getElementById('art-ed').innerHTML=mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Article importé !'); } } catch { toast('Vérifiez ANTHROPIC_API_KEY','e'); }
 }
 function togglePaste(){ const pa=document.getElementById('paste-area'); pa.style.display=pa.style.display==='none'?'':'none'; }
 async function adaptPaste(){
@@ -1443,15 +1194,14 @@ async function adaptPaste(){
   try { const r=await api('POST','/api/agent',{type:'correcteur',title:'Adapter en Brand Voice',content:text}); if(r.result){ document.getElementById('art-ed').innerHTML=mdHtml(r.result); updateWC(); updateSEO(); toast('✅ Texte adapté !'); } } catch{}
 }
 
-// AI Generation
 async function aiGen(type){
   const title=document.getElementById('art-title').value; const content=document.getElementById('art-ed').innerText||'';
   const el=document.getElementById('ai-ed-res'); if(el){el.innerHTML='<div class="loading"><div class="spin"></div></div>';el.classList.add('show');}
   const prompts={
-    article:`Génère un article complet de 1000-1400 mots pour VU Magazine sur : "${title}". Brand Voice Stéphanie Jouin : expert, direct, factuel, Social Media France. Structure : H2/H3, intro accrocheur, conclusion actionnable. Données 2025/2026.`,
+    article:`Génère un article complet de 1000-1400 mots pour VU Magazine sur : "${title}". Brand Voice Stéphanie Jouin : expert, direct, factuel, Social Media France. Structure H2/H3.`,
     paragraph:`Génère un paragraphe de 80-120 mots sur : "${title||content.substring(0,100)}". Ton Stéphanie Jouin, VU Magazine.`,
-    title:`Génère 5 titres SEO pour un article sur : "${title||content.substring(0,100)}". Inclure le mot-clé, format engageant.`,
-    intro:`Réécris cette introduction avec une accroche forte et une promesse claire : ${content.substring(0,400)}`,
+    title:`Génère 5 titres SEO pour : "${title||content.substring(0,100)}".`,
+    intro:`Réécris cette introduction avec une accroche forte : ${content.substring(0,400)}`,
     conclusion:`Conclusion actionnable pour : ${content.substring(0,400)}`
   };
   try {
@@ -1466,7 +1216,7 @@ async function aiGen(type){
 }
 async function genExcerpt(){
   const t=document.getElementById('art-title').value; const c=document.getElementById('art-ed').innerText||'';
-  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un extrait SEO de 120-160 caractères pour cet article VU Magazine. Inclure le mot-clé principal. Article : ${c.substring(0,400)}`}); if(r.result){ document.getElementById('art-exc').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,160); updateSEO(); toast('✅ Extrait généré !'); } } catch{}
+  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un extrait SEO de 120-160 caractères. Article : ${c.substring(0,400)}`}); if(r.result){ document.getElementById('art-exc').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,160); updateSEO(); toast('✅ Extrait généré !'); } } catch{}
 }
 async function genFAQ(){
   const t=document.getElementById('art-title').value; const c=document.getElementById('art-ed').innerText||'';
@@ -1475,10 +1225,9 @@ async function genFAQ(){
 }
 async function genAlt(){
   const t=document.getElementById('art-title').value||'Social Media Marketing';
-  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un texte ALT SEO de 80-120 caractères pour une image d'article sur "${t}". En français, descriptif.`}); if(r.result){ document.getElementById('art-alt').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,125); toast('✅ ALT généré !'); } } catch{}
+  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un texte ALT SEO de 80-120 caractères pour une image sur "${t}". En français.`}); if(r.result){ document.getElementById('art-alt').value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,125); toast('✅ ALT généré !'); } } catch{}
 }
 
-// AI Float
 let floatOpen=false;
 function showAiFloat(e){ const fl=document.getElementById('ai-float'); fl.style.top=(e.clientY+10)+'px'; fl.style.left=Math.min(e.clientX,window.innerWidth-350)+'px'; fl.classList.add('show'); document.getElementById('ai-fl-inp').focus(); floatOpen=true; }
 function closeFloat(){ document.getElementById('ai-float').classList.remove('show'); floatOpen=false; }
@@ -1494,7 +1243,6 @@ async function quickAgent(type){
   try { const r=await api('POST','/api/agent',{type,title:t,keyword:t,content:c}); if(el){el.innerHTML=mdHtml(r.result||'');el.classList.add('show');} } catch(e){if(el){el.textContent='❌ '+e.message;el.classList.add('show');}}
 }
 
-// ─ VEILLE ─────────────────────────────────────────────────────────
 async function loadNews(){
   const cl=document.getElementById('v-news-list'); if(cl) cl.innerHTML='<div class="loading"><div class="spin"></div></div>';
   try {
@@ -1545,21 +1293,16 @@ function switchVTab(tab){
   const isN=tab==='news';
   document.getElementById('v-news-list').style.display=isN?'':'none';
   document.getElementById('v-saved-list').style.display=isN?'none':'';
-  if(!isN){renderSavedFull();}
+  if(!isN){document.getElementById('v-saved-list').innerHTML=S.saved.length?S.saved.map(a=>`<div class="news-it" style="margin-bottom:8px"><div style="flex:1"><div class="news-src">${esc(a.source)}</div><div class="news-ttl">${esc(a.title)}</div><div class="news-acts"><button class="btn g sm" onclick="useInspiration(${JSON.stringify(a).replace(/"/g,'&quot;')})">✍️ Créer un article</button></div></div></div>`).join(''):'<div class="empty">Aucune sélection</div>';}
   document.getElementById('vt-n').style.cssText=isN?'background:var(--accent);color:#fff':'';
   document.getElementById('vt-s').className=`btn ${isN?'g':'p'} sm`;
 }
-function renderSavedFull(){
-  const el=document.getElementById('v-saved-list'); if(!el) return;
-  el.innerHTML=S.saved.length?S.saved.map(a=>`<div class="news-it" style="margin-bottom:8px"><div style="flex:1"><div class="news-src">${esc(a.source)}</div><div class="news-ttl">${esc(a.title)}</div><div class="news-acts"><button class="btn g sm" onclick="useInspiration(${JSON.stringify(a).replace(/"/g,'&quot;')})">✍️ Créer un article</button></div></div></div>`).join(''):'<div class="empty">Aucune sélection</div>';
-}
-function createFromSaved(){if(!S.saved.length)return toast('Sélectionnez des articles','i');go('new-article');setTimeout(()=>{const t=S.saved.map(a=>`- ${a.title} (${a.source})`).join('\n');document.getElementById('art-ed').innerHTML=`<p><em>Sources veille :\n${esc(t)}</em></p>`;toast(`✍️ ${S.saved.length} source(s) importée(s)`);},250);}
+function createFromSaved(){if(!S.saved.length)return toast('Sélectionnez des articles','i');go('new-article');setTimeout(()=>{document.getElementById('art-ed').innerHTML=`<p><em>Sources : ${S.saved.map(a=>a.title).join(' · ')}</em></p>`;toast(`✍️ ${S.saved.length} source(s) importée(s)`);},250);}
 function liFromSaved(){if(!S.saved.length)return toast('Sélectionnez des articles','i');go('linkedin');setTimeout(()=>{switchLiSrc('custom');document.getElementById('li-custom').value=S.saved.map(a=>a.title+' - '+a.description).join('\n\n');},250);}
 function useInspiration(a){go('new-article');setTimeout(()=>{document.getElementById('art-title').value=a.title||'';onTitle(a.title||'');if(a.description)document.getElementById('art-exc').value=a.description;toast('📰 Article pré-rempli !');},250);}
 
-// ─ KANBAN ────────────────────────────────────────────────────────
 async function loadKanban(){
-  try { const d=await api('GET','/api/articles?limit=200'); S.kanban=d.articles.map(a=>({id:a.id,title:a.title,cat:a.category_name,color:a.category_color,col:a.status==='published'?'published':a.status==='scheduled'?'scheduled':a.status==='review'?'review':a.status==='ideas'?'ideas':'draft',date:a.published_at||a.updated_at,author:a.author_name})); renderKanban(); } catch{}
+  try { const d=await api('GET','/api/articles?limit=200'); S.kanban=d.articles.map(a=>({id:a.id,title:a.title,cat:a.category_name,color:a.category_color,col:a.status==='published'?'published':a.status==='scheduled'?'scheduled':'draft',date:a.published_at||a.updated_at,author:a.author_name})); renderKanban(); } catch{}
 }
 function renderKanban(){
   ['ideas','draft','review','scheduled','published'].forEach(col=>{
@@ -1571,7 +1314,7 @@ function renderKanban(){
         ${c.cat?`<div class="kcard-cat" style="color:${c.color||'#888'}">${c.cat}</div>`:''}
         <div class="kcard-ttl">${esc(c.title)}</div>
         <div class="kcard-meta"><div class="kcard-av">${(c.author||'?').charAt(0).toUpperCase()}</div>${c.date?`<div class="kcard-date">${new Date(c.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>`:''}</div>
-        <div class="kcard-acts" ondragstart="event.stopPropagation()"><button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})" title="Modifier">✏</button><button class="kcbtn" onclick="event.stopPropagation();editArt(${c.id},'${c.col==='published'?'published':c.col==='scheduled'?'scheduled':'draft'}')" title="Éditer">→</button></div>
+        <div class="kcard-acts" ondragstart="event.stopPropagation()"><button class="kcbtn" onclick="event.stopPropagation();editKCard(${c.id})">✏</button><button class="kcbtn" onclick="event.stopPropagation();editArt(${c.id},'${c.col}')">→</button></div>
       </div>`).join('');
   });
 }
@@ -1610,7 +1353,6 @@ async function delKCard(){
   await api('DELETE',`/api/articles/${id}`); S.kanban=S.kanban.filter(c=>String(c.id)!==id); closeMod('modal-kcard'); renderKanban(); toast('Carte supprimée');
 }
 
-// ─ CALENDAR ──────────────────────────────────────────────────────
 function switchPlan(view,el){
   document.querySelectorAll('.plan-tab').forEach(t=>t.classList.remove('on')); el?.classList.add('on');
   document.getElementById('kanban-view').style.display=view==='kanban'?'':'none';
@@ -1634,7 +1376,6 @@ function renderCal(){
   }).join('');
 }
 
-// ─ OPTIMIZE ──────────────────────────────────────────────────────
 async function initOpt(){
   await loadMeta();
   const sel=document.getElementById('opt-sel'); if(sel&&sel.options.length<=1){ const d=await api('GET','/api/articles?limit=100'); d.articles.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`[${a.status==='published'?'✅':'📝'}] ${a.title.substring(0,55)}`;sel.appendChild(o);}); }
@@ -1643,13 +1384,11 @@ async function initOpt(){
 async function loadOptArt(){
   const id=document.getElementById('opt-sel').value; if(!id){S.optArt=null;return;}
   S.optArt=await api('GET',`/api/articles/${id}`);
-  txt('opt-ttl', S.optArt.title);
-  txt('opt-slug', `vu-magazine.com/blog/${S.optArt.slug}`);
+  txt('opt-ttl', S.optArt.title); txt('opt-slug', `vu-magazine.com/blog/${S.optArt.slug}`);
   document.getElementById('opt-info').style.display = '';
   document.getElementById('opt-seo-pnl').style.display = '';
   const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
-  setVal('opt-edit-title', S.optArt.title);
-  setVal('opt-edit-exc', S.optArt.excerpt);
+  setVal('opt-edit-title', S.optArt.title); setVal('opt-edit-exc', S.optArt.excerpt);
   setVal('opt-edit-content', S.optArt.content ? S.optArt.content.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim() : '');
   setVal('opt-edit-meta', S.optArt.meta_description);
   const arr=[[!!S.optArt.title,'Titre'],[!!S.optArt.slug,'Slug'],[(S.optArt.excerpt||'').length>=80,'Extrait 80+'],[(S.optArt.meta_description||'').length>=120,'Meta desc'],[(S.optArt.content||'').split(/\s+/).length>=800,'800+ mots'],[!!S.optArt.cover_image_url,'Image principale']];
@@ -1658,11 +1397,9 @@ async function loadOptArt(){
 async function runOpt(type){
   if(!S.optArt)return toast('Sélectionnez un article','i');
   const wrap=document.getElementById('opt-res-wrap'),body=document.getElementById('opt-res-body'),ttl=document.getElementById('opt-res-ttl');
-  if(wrap)wrap.style.display=''; if(body)body.innerHTML='<div class="loading"><div class="spin"></div> Analyse en cours…</div>';
-  if(ttl)ttl.textContent=`${type.toUpperCase()} — Analyse`;
+  if(wrap)wrap.style.display=''; if(body)body.innerHTML='<div class="loading"><div class="spin"></div> Analyse en cours…</div>'; if(ttl)ttl.textContent=`${type.toUpperCase()} — Analyse`;
   try { const r=await api('POST','/api/agent',{type,title:S.optArt.title,keyword:S.optArt.title,excerpt:S.optArt.excerpt,content:S.optArt.content}); if(body)body.innerHTML=mdHtml(r.result||''); wrap?.scrollIntoView({behavior:'smooth'}); toast('Agent terminé ✅'); } catch(e){if(body)body.innerHTML=`<div style="color:var(--accent)">❌ ${e.message}</div>`;}
 }
-
 async function saveOptArt(){
   if(!S.optArt) return toast('Aucun article chargé','e');
   const title = document.getElementById('opt-edit-title')?.value?.trim();
@@ -1670,18 +1407,9 @@ async function saveOptArt(){
   const content = document.getElementById('opt-edit-content')?.value?.trim();
   const meta_description = document.getElementById('opt-edit-meta')?.value?.trim();
   if(!title) return toast('Le titre est obligatoire','e');
-  try {
-    await api('PUT', `/api/articles/${S.optArt.id}`, {
-      ...S.optArt, title, excerpt, content, meta_description
-    });
-    S.optArt.title = title; S.optArt.excerpt = excerpt;
-    S.optArt.content = content; S.optArt.meta_description = meta_description;
-    txt('opt-ttl', title);
-    toast('✅ Article sauvegardé !');
-  } catch(e){ toast('Erreur : '+e.message,'e'); }
+  try { await api('PUT', `/api/articles/${S.optArt.id}`, {...S.optArt, title, excerpt, content, meta_description}); S.optArt.title=title; txt('opt-ttl', title); toast('✅ Article sauvegardé !'); } catch(e){ toast('Erreur : '+e.message,'e'); }
 }
 
-// ─ LINKEDIN ──────────────────────────────────────────────────────
 async function initLi(){
   await loadMeta();
   const sel=document.getElementById('li-art-sel'); if(sel&&sel.options.length<=1){ const d=await api('GET','/api/articles?limit=100'); d.articles.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.title.substring(0,55);sel.appendChild(o);}); }
@@ -1693,33 +1421,6 @@ function switchLiSrc(src){
   });
 }
 async function loadLiArt(){const id=document.getElementById('li-art-sel').value;if(!id){S.liArt=null;return;}S.liArt=await api('GET',`/api/articles/${id}`);}
-function buildLiPrompt(src,fmt,tone,cta,tags){
-  const tones={
-    stephanie:'Stéphanie Jouin (experte Social Media 12 ans, directe, factuelle, ancrage France)',
-    media:'VU Magazine (médiainstit, ton autoritaire)',
-    casual:'Conversationnel, accessible, proche'
-  };
-  const fmts={
-    story:'Storytelling : hook fort (chiffre ou anecdote), développement, leçon actionnable',
-    insight:'Insight expert : donnée précise, analyse, implication pratique',
-    thread:'5 points numérotés, stat-choc en intro, synthèse finale',
-    question:'Question qui interpelle, point de vue personnel, invitation au débat',
-    benchmark:'Chiffre précis en premier, contexte Social Media France, ce que ça implique'
-  };
-  const ctas={
-    article:'CTA final : Lire l\'article complet sur VU Magazine →',
-    newsletter:'CTA : S\'abonner à la newsletter VU Magazine',
-    comment:'CTA : Partager votre expérience en commentaire',
-    none:''
-  };
-  return `Génère un post LinkedIn pour ${tones[tone]||tones.stephanie}.
-Format : ${fmts[fmt]||fmts.insight}.
-${ctas[cta]||''}
-Hashtags à inclure : ${tags}
-Longueur : 1200-1800 caractères. Pas de markdown. Texte du post uniquement.
-
-Source : ${src}`;
-}
 
 async function genLi(){
   const fmt=document.getElementById('li-fmt').value; const tone=document.getElementById('li-tone').value;
@@ -1728,10 +1429,10 @@ async function genLi(){
   let src='';
   if(S.liArt)src=`Titre : ${S.liArt.title}\n\nContenu : ${(S.liArt.content||'').replace(/<[^>]+>/g,' ').trim().substring(0,1200)}`;
   else src=document.getElementById('li-custom')?.value||'Social Media France';
-  const tones={stephanie:'Stéphanie Jouin (experte Social Media 12 ans, directe, factuelle, France)',media:'VU Magazine (institutionnel, autorité)',casual:'Conversationnel, accessible'};
-  const fmts={story:'Storytelling : hook fort (chiffre ou anecdote), développement, leçon actionnable',insight:'Insight expert : donnée précise, analyse, implication',thread:'5 points numérotés, stat-choc en intro',question:'Question qui fait réfléchir, point de vue, invitation au débat',benchmark:'Chiffre précis d\'abord, contexte Social Media France'};
+  const tones={stephanie:'Stéphanie Jouin (experte Social Media 12 ans, directe, factuelle, France)',media:'VU Magazine (institutionnel)',casual:'Conversationnel, accessible'};
+  const fmts={story:'Storytelling : hook fort, développement, leçon actionnable',insight:'Insight expert : donnée précise, analyse, implication',thread:'5 points numérotés, stat-choc en intro',question:'Question qui fait réfléchir, invitation au débat',benchmark:'Chiffre précis, contexte Social Media France'};
   const ctas={article:'CTA : Lire l\'article complet sur VU Magazine →',newsletter:'CTA : S\'abonner à la newsletter VU Magazine',comment:'CTA : Partager votre expérience en commentaire',none:''};
-  const prompt=`Génère un post LinkedIn pour ${tones[tone]}.\nFormat : ${fmts[fmt]}.\n${ctas[cta]?'CTA : '+ctas[cta]:''}\nHashtags : ${tags}\nLongueur : 1200-1800 car. max. Pas de markdown, pas de titres. Texte du post uniquement.\n\nSource : ${src}`;
+  const prompt=`Génère un post LinkedIn pour ${tones[tone]}.\nFormat : ${fmts[fmt]}.\n${ctas[cta]}\nHashtags : ${tags}\nLongueur : 1200-1800 car. max. Pas de markdown. Texte du post uniquement.\n\nSource : ${src}`;
   try { const r=await api('POST','/api/linkedin-generate',{prompt}); const text=(r.result||'').replace(/<[^>]+>/g,'').trim(); if(prev)prev.textContent=text; updateLiChars(); toast('✅ Post LinkedIn généré !'); } catch(e){if(prev)prev.textContent='❌ '+e.message;}
 }
 function updateLiChars(){const t=document.getElementById('li-prev')?.textContent||'';const el=document.getElementById('li-chars');if(el){el.textContent=`${t.length} / 3000 car.`;el.style.color=t.length>3000?'var(--accent)':'var(--ink3)';}}
@@ -1741,13 +1442,7 @@ function openLinkedIn(){const t=document.getElementById('li-prev')?.textContent|
 async function publishLinkedIn(){
   const text=(document.getElementById('li-prev')?.textContent||'').trim();
   if(!text||text==='Sélectionnez une source et cliquez Générer…')return toast('Générez un post d\'abord','i');
-  const url=document.getElementById('art-slug')?.value?`https://vu-magazine.com/articles/${document.getElementById('art-slug').value}`:'';
-  try {
-    toast('Publication en cours…','i');
-    const r=await api('POST','/api/linkedin-post',{text,url});
-    if(r.ok) toast('✅ Publié sur LinkedIn !');
-    else toast('Erreur LinkedIn : '+(r.error||'inconnue'),'e');
-  } catch(e){ toast('Erreur : '+e.message,'e'); }
+  try { toast('Publication en cours…','i'); const r=await api('POST','/api/linkedin-post',{text}); if(r.ok) toast('✅ Publié sur LinkedIn !'); else toast('Erreur : '+(r.error||'inconnue'),'e'); } catch(e){ toast('Erreur : '+e.message,'e'); }
 }
 function schedLi(){
   const dt=document.getElementById('li-sched').value; const text=document.getElementById('li-prev')?.textContent||'';
@@ -1757,8 +1452,7 @@ function schedLi(){
   toast('⏰ Post LinkedIn planifié !');
 }
 
-// ─ MEDIA ─────────────────────────────────────────────────────────
-const DEMO_IMGS=['https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=300&q=80','https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&q=80','https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=300&q=80','https://images.unsplash.com/photo-1552581234-26160f608093?w=300&q=80','https://images.unsplash.com/photo-1563986768609-322da13575f3?w=300&q=80','https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=300&q=80','https://images.unsplash.com/photo-1573152958734-1922c188fba3?w=300&q=80','https://images.unsplash.com/photo-1522542550221-31fd19575a2d?w=300&q=80'];
+const DEMO_IMGS=['https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=300&q=80','https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&q=80','https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=300&q=80','https://images.unsplash.com/photo-1552581234-26160f608093?w=300&q=80','https://images.unsplash.com/photo-1563986768609-322da13575f3?w=300&q=80','https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=300&q=80'];
 function initMedia(){switchMSrc('unsplash');}
 function switchMSrc(src,ctx='page'){
   S.mSrc=src;
@@ -1771,74 +1465,48 @@ function switchMSrc2(src){switchMSrc(src,'modal');}
 async function searchMedia(ctx='page'){
   const gid=ctx==='modal'?'modal-media-grid':'media-grid';
   const grid=document.getElementById(gid); if(!grid) return;
-  const srcKey = ctx==='modal' ? S.mSrc : (S.mSrc||'unsplash');
   const qEl = document.getElementById(ctx==='modal'?'m-modal-srch':'m-srch');
   const q = qEl?.value || 'social media marketing';
   grid.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div></div>';
   try {
-    const d = await api('GET', `/api/photos?q=${encodeURIComponent(q)}&src=${srcKey}&per_page=12`);
+    const d = await api('GET', `/api/photos?q=${encodeURIComponent(q)}&src=${S.mSrc}&per_page=12`);
     const photos = d.photos || [];
-    if (!photos.length) {
-      grid.innerHTML = DEMO_IMGS.map((url,i)=>`<div class="m-thumb ${S.mSel===url?'sel':''}" onclick="selMedia('${url}','${ctx}')"><img src="${url}" alt="" loading="lazy"><div class="m-check">✓</div></div>`).join('') + uploadThumb();
-      return;
-    }
-    grid.innerHTML = photos.map(p=>`<div class="m-thumb ${S.mSel===p.url?'sel':''}" onclick="selMedia('${esc(p.url)}','${ctx}')"><img src="${esc(p.thumb)}" alt="${esc(p.credit)}" loading="lazy"><div class="m-check">✓</div><div class="m-credit"><a href="${esc(p.credit_url)}" target="_blank" style="color:inherit">${esc(p.credit)}</a></div></div>`).join('') + uploadThumb();
-  } catch(e) {
-    grid.innerHTML = DEMO_IMGS.map((url,i)=>`<div class="m-thumb" onclick="selMedia('${url}','${ctx}')"><img src="${url}" alt="" loading="lazy"><div class="m-check">✓</div></div>`).join('') + uploadThumb();
-  }
+    if (!photos.length) { grid.innerHTML = DEMO_IMGS.map(url=>`<div class="m-thumb" onclick="selMedia('${url}','${ctx}')"><img src="${url}" alt="" loading="lazy"><div class="m-check">✓</div></div>`).join('') + uploadThumb(); return; }
+    grid.innerHTML = photos.map(p=>`<div class="m-thumb ${S.mSel===p.url?'sel':''}" onclick="selMedia('${esc(p.url)}','${ctx}')"><img src="${esc(p.thumb)}" alt="${esc(p.credit)}" loading="lazy"><div class="m-check">✓</div><div class="m-credit">${esc(p.credit)}</div></div>`).join('') + uploadThumb();
+  } catch { grid.innerHTML = DEMO_IMGS.map(url=>`<div class="m-thumb" onclick="selMedia('${url}','${ctx}')"><img src="${url}" alt="" loading="lazy"><div class="m-check">✓</div></div>`).join('') + uploadThumb(); }
 }
 function uploadThumb(){ return '<div class="m-upload" onclick="document.getElementById(\'m-file\').click()" style="aspect-ratio:16/10">📁<span style="font-size:11px">Upload</span></div>'; }
 function selMedia(url,ctx='page'){
   S.mSel=url;
   const gid=ctx==='modal'?'modal-media-grid':'media-grid';
   document.querySelectorAll(`#${gid} .m-thumb`).forEach(t=>t.classList.toggle('sel',t.querySelector('img')?.src===url));
-  if(ctx==='page'){
-    const mp=document.getElementById('m-sel-prev'); if(mp) mp.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
-    document.getElementById('m-url').value=url;
-  }
+  if(ctx==='page'){ const mp=document.getElementById('m-sel-prev'); if(mp) mp.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`; document.getElementById('m-url').value=url; }
 }
 function openMediaPicker(ctx='cover'){S.mCtx=ctx;closeAllModals();document.getElementById('modal-media').classList.add('open');switchMSrc('unsplash','modal');}
-function confirmMedia(){
-  if(!S.mSel)return toast('Sélectionnez une image','i');
-  if(S.mCtx==='cover'||S.mCtx==='editor'){ setCoverPrev(S.mSel); document.getElementById('art-cover').value=S.mSel; }
-  closeMod('modal-media'); toast('✅ Image sélectionnée !');
-}
+function confirmMedia(){ if(!S.mSel)return toast('Sélectionnez une image','i'); setCoverPrev(S.mSel); document.getElementById('art-cover').value=S.mSel; closeMod('modal-media'); toast('✅ Image sélectionnée !'); }
 function useMedia(){if(!S.mSel)return toast('Sélectionnez une image','i');setCoverPrev(S.mSel);go('new-article');toast('✅ Image définie comme couverture !');}
 function handleUpload(input){const f=input.files[0];if(!f)return;selMedia(URL.createObjectURL(f));toast(`📁 ${f.name} chargé !`);}
 async function genMediaAlt(){
-  const t=document.getElementById('art-title')?.value||document.getElementById('art-title')?.value||'Social Media';
-  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un texte ALT SEO de 80-120 caractères pour une image d'article sur "${t}". En français, descriptif.`}); if(r.result){ const alt=r.result.replace(/<[^>]+>/g,'').trim().substring(0,125); const el=document.getElementById('m-alt'); if(el)el.value=alt; toast('✅ ALT généré !'); } } catch{}
+  const t=document.getElementById('art-title')?.value||'Social Media';
+  try { const r=await api('POST','/api/agent',{type:'correcteur',title:t,content:`Génère un texte ALT SEO de 80-120 caractères pour une image sur "${t}". En français.`}); if(r.result){ const el=document.getElementById('m-alt'); if(el)el.value=r.result.replace(/<[^>]+>/g,'').trim().substring(0,125); toast('✅ ALT généré !'); } } catch{}
 }
 
-// ─ ANALYTICS ─────────────────────────────────────────────────────
 function loadAnalytics(){
   loadTopArts();
-  // Charger les vraies stats depuis la DB
   api('GET','/api/stats').then(d=>{
     const s = d.stats || {};
-    // Mettre à jour les cartes stats si elles existent dans cette page
-    const statsMap = {
-      'an-sessions': parseInt(s.total_views||0).toLocaleString('fr'),
-      'an-pub': s.published||0,
-      'an-drafts': s.drafts||0,
-      'an-month': s.last_30d||0,
-    };
-    Object.entries(statsMap).forEach(([id,val])=>{
-      const el=document.getElementById(id); if(el) el.textContent=val;
-    });
+    txt('an-sessions', parseInt(s.total_views||0).toLocaleString('fr'));
+    txt('an-pub', s.published||0);
+    txt('an-month', s.last_30d||0);
+    txt('an-week', s.last_7d||0);
   }).catch(()=>{});
 }
 async function loadTopArts(){
   const el=document.getElementById('analytics-top'); if(!el) return;
-  try { const d=await api('GET','/api/articles?limit=10&status=published'); el.innerHTML=d.articles.map((a,i)=>`<div class="metric-row"><div style="font-size:12px"><span style="color:var(--ink4);font-family:var(--mono);margin-right:6px">${String(i+1).padStart(2,'0')}</span>${esc(a.title.substring(0,40))}…</div><div style="display:flex;align-items:center;gap:8px"><div style="font-size:12px;font-weight:600;font-family:var(--mono)">${parseInt(a.view_count||0).toLocaleString('fr')}</div><span class="badge b-pub" style="font-size:10px">${a.status==='published'?'✅':'📝'}</span></div></div>`).join(''); } catch{}
+  try { const d=await api('GET','/api/articles?limit=10&status=published'); el.innerHTML=d.articles.map((a,i)=>`<div class="metric-row"><div style="font-size:12px"><span style="color:var(--ink4);font-family:var(--mono);margin-right:6px">${String(i+1).padStart(2,'0')}</span>${esc(a.title.substring(0,40))}…</div><div style="font-size:12px;font-weight:600;font-family:var(--mono)">${parseInt(a.view_count||0).toLocaleString('fr')}</div></div>`).join(''); } catch{}
 }
-function setAP(days){
-  S.ap=days;
-  [7,28,90,365].forEach(d=>{const el=document.getElementById(`af-${d}`);if(el)el.style.cssText=d===days?'background:var(--accent);color:#fff':'';});
-  toast(`Période : ${days} jours`,'i');
-}
+function setAP(days){ S.ap=days; [7,28,90,365].forEach(d=>{const el=document.getElementById(`af-${d}`);if(el)el.style.cssText=d===days?'background:var(--accent);color:#fff':'';});}
 
-// ─ AGENTS ────────────────────────────────────────────────────────
 async function initAg(){
   await loadMeta();
   const sel=document.getElementById('ag-art-sel'); if(sel&&sel.options.length<=1){ const d=await api('GET','/api/articles?limit=100'); d.articles.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.title.substring(0,55);sel.appendChild(o);}); }
@@ -1853,73 +1521,47 @@ async function runAgent(type){
   try { const r=await api('POST','/api/agent',payload); if(body)body.innerHTML=mdHtml(r.result||''); wrap?.scrollIntoView({behavior:'smooth'}); toast('Agent terminé ✅'); } catch(e){if(body)body.innerHTML=`<div style="color:var(--accent)">❌ ${e.message}</div>`;}
 }
 
-// ─ SETTINGS ──────────────────────────────────────────────────────
 function switchSet(key,el){
   document.querySelectorAll('.set-ni').forEach(i=>i.classList.remove('on')); el?.classList.add('on');
   document.querySelectorAll('.set-panel').forEach(p=>p.style.display='none');
   document.getElementById(`set-${key}`)?.style.removeProperty('display');
-  if(key==='glossaire') loadGlossary();
-  else if(key==='partenaires') loadPartners();
-  // glossaire/partenaires/ticker → pages dédiées
 }
 
-// ─ MODAL / UTILS ─────────────────────────────────────────────────
 function closeMod(id){document.getElementById(id)?.classList.remove('open');}
-function closeAllModals(){document.querySelectorAll('.modal-ov,.modal-overlay').forEach(m=>m.classList.remove('open'));}
+function closeAllModals(){document.querySelectorAll('.modal-ov').forEach(m=>m.classList.remove('open'));}
 document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.addEventListener('click',e=>{ if(floatOpen&&!document.getElementById('ai-float').contains(e.target)&&!e.target.closest('[onclick*="showAiFloat"]'))closeFloat(); });
 function cpRes(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText||'').then(()=>toast('📋 Copié !'),()=>toast('Erreur copie','e'));}
 
-// ─ INIT ──────────────────────────────────────────────────────────
-
 // ── GLOSSAIRE ────────────────────────────────────────────────────
-allGlossary = [];
 async function loadGlossary() {
   const container = document.getElementById('glossary-list');
   container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
   allGlossary = await api('GET', '/api/glossary');
   renderGlossaryList(allGlossary);
 }
-
 function renderGlossaryList(terms) {
   const container = document.getElementById('glossary-list');
-  if (!terms.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-ico">📖</div><p>Aucun terme. Commencez par en ajouter un !</p></div>';
-    return;
-  }
+  if (!terms.length) { container.innerHTML = '<div class="empty">Aucun terme. Commencez par en ajouter un !</div>'; return; }
   const grouped = {};
   terms.forEach(t => { const l = t.letter || t.name[0].toUpperCase(); (grouped[l] = grouped[l]||[]).push(t); });
-
   container.innerHTML = Object.keys(grouped).sort().map(letter => `
     <div class="gloss-letter">${letter}</div>
-    <table style="width:100%">
-      <tbody>
-        ${grouped[letter].map(t => `
-          <tr style="border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='rgba(0,0,0,.025)'" onmouseout="this.style.background=''">
-            <td style="padding:12px 16px;font-weight:500;min-width:160px">${escHtml(t.name)}</td>
-            <td style="padding:12px 16px;color:var(--ink2);font-size:13px;max-width:400px">${escHtml((t.definition||'').substring(0,100))}…</td>
-            <td style="padding:12px 16px">
-              ${t.platforms ? t.platforms.map(p => `<span style="font-size:10px;background:var(--surface);padding:2px 6px;border-radius:4px;margin-right:4px;color:var(--ink3)">${p}</span>`).join('') : ''}
-            </td>
-            <td style="padding:12px 16px"><span class="badge badge-${t.status}">${t.status==='published'?'✅':'📝'}</span></td>
-            <td style="padding:12px 16px">
-              <div style="display:flex;gap:6px">
-                <button class="btn g sm" onclick="editGlossary(${t.id})">Éditer</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteGlossary(${t.id},'${escAttr(t.name)}')">✕</button>
-              </div>
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `).join('');
+    <table style="width:100%"><tbody>
+      ${grouped[letter].map(t => `
+        <tr style="border-bottom:1px solid var(--border)" onmouseover="this.style.background='rgba(0,0,0,.025)'" onmouseout="this.style.background=''">
+          <td style="padding:12px 16px;font-weight:500;min-width:160px">${escHtml(t.name)}</td>
+          <td style="padding:12px 16px;color:var(--ink2);font-size:13px;max-width:400px">${escHtml((t.definition||'').substring(0,100))}…</td>
+          <td style="padding:12px 16px">${t.platforms ? t.platforms.map(p => `<span style="font-size:10px;background:var(--surface);padding:2px 6px;border-radius:4px;margin-right:4px;color:var(--ink3)">${p}</span>`).join('') : ''}</td>
+          <td style="padding:12px 16px"><span class="badge ${t.status==='published'?'b-pub':'b-dft'}">${t.status==='published'?'✅':'📝'}</span></td>
+          <td style="padding:12px 16px"><div style="display:flex;gap:6px"><button class="btn g sm" onclick="editGlossary(${t.id})">Éditer</button><button class="btn d sm" onclick="deleteGlossary(${t.id},'${escAttr(t.name)}')">✕</button></div></td>
+        </tr>`).join('')}
+    </tbody></table>`).join('');
 }
-
 function filterGlossary(q) {
   const filtered = q ? allGlossary.filter(t => t.name.toLowerCase().includes(q.toLowerCase()) || t.definition?.toLowerCase().includes(q.toLowerCase())) : allGlossary;
   renderGlossaryList(filtered);
 }
-
 function openGlossModal(term = null) {
   document.getElementById('gloss-modal-title').textContent = term ? 'Modifier le terme' : 'Nouveau terme';
   document.getElementById('gloss-id').value = term?.id || '';
@@ -1930,210 +1572,164 @@ function openGlossModal(term = null) {
   document.getElementById('gloss-related').value = term?.related_terms?.join(', ') || '';
   document.getElementById('gloss-article').value = term?.article_slug || '';
   document.getElementById('gloss-status').value = term?.status || 'published';
-  closeAllModals();document.getElementById('gloss-modal').classList.add('open');
+  closeAllModals(); document.getElementById('gloss-modal').classList.add('open');
 }
-
-function editGlossary(id) {
-  const term = allGlossary.find(t => t.id === id);
-  if (term) openGlossModal(term);
-}
-
+function editGlossary(id) { const term = allGlossary.find(t => t.id === id); if (term) openGlossModal(term); }
 async function saveGlossary() {
   const id = document.getElementById('gloss-id').value;
   const name = document.getElementById('gloss-name').value.trim();
   const definition = document.getElementById('gloss-def').value.trim();
-  if (!name || !definition) return toast('Nom et définition obligatoires', 'error');
-
-  const body = {
-    name, definition,
-    example: document.getElementById('gloss-example').value,
-    platforms: document.getElementById('gloss-platforms').value.split(',').map(s=>s.trim()).filter(Boolean),
-    related_terms: document.getElementById('gloss-related').value.split(',').map(s=>s.trim()).filter(Boolean),
-    article_slug: document.getElementById('gloss-article').value,
-    status: document.getElementById('gloss-status').value,
-  };
-
+  if (!name || !definition) return toast('Nom et définition obligatoires', 'e');
+  const body = {name, definition, example: document.getElementById('gloss-example').value, platforms: document.getElementById('gloss-platforms').value.split(',').map(s=>s.trim()).filter(Boolean), related_terms: document.getElementById('gloss-related').value.split(',').map(s=>s.trim()).filter(Boolean), article_slug: document.getElementById('gloss-article').value, status: document.getElementById('gloss-status').value};
   id ? await api('PUT', `/api/glossary/${id}`, body) : await api('POST', '/api/glossary', body);
-  toast(id ? 'Terme mis à jour' : 'Terme ajouté au glossaire');
-  closeMod('gloss-modal');
-  loadGlossary();
+  toast(id ? 'Terme mis à jour' : 'Terme ajouté'); closeMod('gloss-modal'); loadGlossary();
 }
-
 async function deleteGlossary(id, name) {
   if (!confirm(`Supprimer "${name}" ?`)) return;
-  await api('DELETE', `/api/glossary/${id}`);
-  toast('Terme supprimé');
-  loadGlossary();
+  await api('DELETE', `/api/glossary/${id}`); toast('Terme supprimé'); loadGlossary();
 }
 
 // ── PARTENAIRES ──────────────────────────────────────────────────
-allPartners = [];
 async function loadPartners() {
   const tbody = document.getElementById('partners-list');
   tbody.innerHTML = `<tr><td colspan="6"><div class="loading"><div class="spin"></div></div></td></tr>`;
   allPartners = await api('GET', '/api/partners');
-
   tbody.innerHTML = allPartners.length ? allPartners.map(p => `
     <tr>
-      <td class="td-title">
-        ${p.logo_url ? `<img src="${escAttr(p.logo_url)}" height="18" style="margin-right:8px;vertical-align:middle;opacity:.8" onerror="this.remove()">` : ''}
-        ${escHtml(p.name)}
-        <small>${escHtml(p.description||'').substring(0,60)}…</small>
-      </td>
+      <td class="td-main">${p.logo_url ? `<img src="${escAttr(p.logo_url)}" height="18" style="margin-right:8px;vertical-align:middle;opacity:.8" onerror="this.remove()">` : ''}${escHtml(p.name)}<small>${escHtml(p.description||'').substring(0,60)}…</small></td>
       <td style="color:var(--ink3);font-size:12px">${escHtml(p.category||'—')}</td>
       <td><span style="font-size:10px;background:rgba(0,0,0,.07);color:var(--ink2);padding:2px 8px;border-radius:4px">${escHtml(p.badge||'Affilié')}</span></td>
       <td style="color:var(--yellow)">★ ${p.rating||'—'}/5</td>
-      <td><span class="badge badge-${p.status}">${p.status==='published'?'✅ Publié':'📝 Brouillon'}</span></td>
-      <td>
-        <div style="display:flex;gap:6px">
-          <button class="btn g sm" onclick="editPartner(${p.id})">Éditer</button>
-          <button class="btn btn-danger btn-sm" onclick="deletePartner(${p.id},'${escAttr(p.name)}')">✕</button>
-        </div>
-      </td>
-    </tr>
-  `).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="empty-ico">🤝</div><p>Aucun partenaire. Commencez par en ajouter un !</p></div></td></tr>`;
+      <td><span class="badge ${p.status==='published'?'b-pub':'b-dft'}">${p.status==='published'?'✅ Publié':'📝 Brouillon'}</span></td>
+      <td><div style="display:flex;gap:6px"><button class="btn g sm" onclick="editPartner(${p.id})">Éditer</button><button class="btn d sm" onclick="deletePartner(${p.id},'${escAttr(p.name)}')">✕</button></div></td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty">Aucun partenaire</div></td></tr>`;
 }
-
 function openPartnerModal(partner = null) {
-  document.getElementById('partner-modal-title').textContent = partner ? 'Modifier le partenaire' : 'Nouveau partenaire';
+  document.getElementById('partner-modal-title').textContent = partner ? 'Modifier' : 'Nouveau partenaire';
   document.getElementById('partner-id').value = partner?.id || '';
-  document.getElementById('partner-name').value = partner?.name || '';
-  document.getElementById('partner-cat').value = partner?.category || '';
+  ['partner-name','partner-cat','partner-rating','partner-desc','partner-affiliate','partner-website','partner-logo'].forEach(id => { const el=document.getElementById(id); const key=id.replace('partner-',''); if(el) el.value = partner?.[key==='affiliate'?'affiliate_url':key==='website'?'website_url':key==='logo'?'logo_url':key] || ''; });
   document.getElementById('partner-badge').value = partner?.badge || 'Affilié';
-  document.getElementById('partner-rating').value = partner?.rating || '';
-  document.getElementById('partner-desc').value = partner?.description || '';
-  document.getElementById('partner-affiliate').value = partner?.affiliate_url || '';
-  document.getElementById('partner-website').value = partner?.website_url || '';
-  document.getElementById('partner-logo').value = partner?.logo_url || '';
   document.getElementById('partner-status').value = partner?.status || 'published';
   document.getElementById('partner-pros').value = partner?.pros?.join('|') || '';
   document.getElementById('partner-cons').value = partner?.cons?.join('|') || '';
-  closeAllModals();document.getElementById('partner-modal').classList.add('open');
+  closeAllModals(); document.getElementById('partner-modal').classList.add('open');
 }
-
-function editPartner(id) {
-  const p = allPartners.find(p => p.id === id);
-  if (p) openPartnerModal(p);
-}
-
+function editPartner(id) { const p = allPartners.find(p => p.id === id); if (p) openPartnerModal(p); }
 async function savePartner() {
   const id = document.getElementById('partner-id').value;
   const name = document.getElementById('partner-name').value.trim();
-  if (!name) return toast('Le nom est obligatoire', 'error');
-
-  const body = {
-    name,
-    category: document.getElementById('partner-cat').value,
-    badge: document.getElementById('partner-badge').value,
-    rating: parseFloat(document.getElementById('partner-rating').value) || null,
-    description: document.getElementById('partner-desc').value,
-    affiliate_url: document.getElementById('partner-affiliate').value,
-    website_url: document.getElementById('partner-website').value,
-    logo_url: document.getElementById('partner-logo').value,
-    status: document.getElementById('partner-status').value,
-    pros: document.getElementById('partner-pros').value.split('|').map(s=>s.trim()).filter(Boolean),
-    cons: document.getElementById('partner-cons').value.split('|').map(s=>s.trim()).filter(Boolean),
-  };
-
+  if (!name) return toast('Le nom est obligatoire', 'e');
+  const body = {name, category: document.getElementById('partner-cat').value, badge: document.getElementById('partner-badge').value, rating: parseFloat(document.getElementById('partner-rating').value)||null, description: document.getElementById('partner-desc').value, affiliate_url: document.getElementById('partner-affiliate').value, website_url: document.getElementById('partner-website').value, logo_url: document.getElementById('partner-logo').value, status: document.getElementById('partner-status').value, pros: document.getElementById('partner-pros').value.split('|').map(s=>s.trim()).filter(Boolean), cons: document.getElementById('partner-cons').value.split('|').map(s=>s.trim()).filter(Boolean)};
   id ? await api('PUT', `/api/partners/${id}`, body) : await api('POST', '/api/partners', body);
-  toast(id ? 'Partenaire mis à jour' : 'Partenaire ajouté');
-  closeMod('partner-modal');
-  loadPartners();
+  toast(id ? 'Partenaire mis à jour' : 'Partenaire ajouté'); closeMod('partner-modal'); loadPartners();
 }
-
 async function deletePartner(id, name) {
   if (!confirm(`Supprimer "${name}" ?`)) return;
-  await api('DELETE', `/api/partners/${id}`);
-  toast('Partenaire supprimé');
-  loadPartners();
+  await api('DELETE', `/api/partners/${id}`); toast('Partenaire supprimé'); loadPartners();
 }
 
-// ── TICKER ───────────────────────────────────────────────────────
+// ── TICKER — API-connected ───────────────────────────────────────
 const PLATFORM_COLORS = {
-  'TikTok': '#aaa', 'Instagram': '#E1306C', 'Facebook': '#1877F2',
-  'LinkedIn': '#0A66C2', 'YouTube': '#FF0000', 'X': '#888',
-  'Snapchat': '#FFFC00', 'Pinterest': '#E60023', 'Reddit': '#FF4500',
+  'TikTok':'#aaa','Instagram':'#E1306C','Facebook':'#1877F2',
+  'LinkedIn':'#0A66C2','YouTube':'#FF0000','X':'#888',
+  'Snapchat':'#FFFC00','Pinterest':'#E60023','Reddit':'#FF4500',
 };
+
+async function loadTickerFromAPI() {
+  const container = document.getElementById('ticker-items');
+  if (container) container.innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const items = await api('GET', '/api/ticker');
+    if (Array.isArray(items) && items.length) {
+      S.ticker = items.map(i => ({ id: i.id, cat: i.category, color: i.color, title: i.title, is_active: i.is_active, sort_order: i.sort_order }));
+    }
+  } catch(e) {
+    console.warn('Ticker API indisponible', e.message);
+  }
+  renderTicker();
+}
 
 function renderTicker() {
   const container = document.getElementById('ticker-items');
+  if (!container) return;
+  if (!S.ticker.length) {
+    container.innerHTML = '<div class="empty" style="padding:24px">Aucun item. Cliquez "+ Ajouter" pour commencer.</div>';
+    return;
+  }
   container.innerHTML = S.ticker.map((item, i) => `
-    <div class="tick-row" draggable="true">
-      <div class="ticker-color-dot" style="background:${item.color||'#fff'}"></div>
-      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);padding:4px 8px;font-size:12px;cursor:pointer"
-        onchange="updateTickerCat(${i},this.value)">
-        ${['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].map(p =>
-          `<option value="${p}" ${item.cat===p?'selected':''}>${p}</option>`
-        ).join('')}
-        <option value="custom" ${!['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].includes(item.cat)?'selected':''}>${item.cat}</option>
+    <div class="tick-row">
+      <div style="width:10px;height:10px;border-radius:50%;background:${item.color||'#888'};flex-shrink:0"></div>
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink);padding:4px 8px;font-size:12px;cursor:pointer" onchange="updateTickerCat(${i},this.value)">
+        ${['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].map(p=>`<option value="${p}" ${item.cat===p?'selected':''}>${p}</option>`).join('')}
+        <option value="autre" ${!['Instagram','TikTok','Facebook','LinkedIn','YouTube','X','Snapchat','Pinterest','Reddit'].includes(item.cat)?'selected':''}>Autre…</option>
       </select>
-      <input type="text" value="${escAttr(item.title)}" 
+      <input type="text" value="${(item.title||'').replace(/"/g,'&quot;')}"
         style="flex:1;background:transparent;border:none;color:var(--ink);font-size:13px;padding:4px"
-        oninput="updateTickerTitle(${i},this.value)" placeholder="Titre de l'actu…">
+        onchange="updateTickerTitle(${i},this.value)" placeholder="Titre de l'actu…">
+      <select style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--ink2);padding:4px 6px;font-size:11px;cursor:pointer" onchange="updateTickerActive(${i},this.value==='1')">
+        <option value="1" ${item.is_active!==false?'selected':''}>Actif</option>
+        <option value="0" ${item.is_active===false?'selected':''}>Inactif</option>
+      </select>
       <button class="tick-del" onclick="removeTicker(${i})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function updateTickerCat(i, cat) {
-  S.ticker[i].cat = cat;
-  S.ticker[i].color = PLATFORM_COLORS[cat] || '#fff';
-  renderTicker();
-}
-
+function updateTickerCat(i, cat) { S.ticker[i].cat = cat; S.ticker[i].color = PLATFORM_COLORS[cat] || '#888'; renderTicker(); }
 function updateTickerTitle(i, title) { S.ticker[i].title = title; }
+function updateTickerActive(i, active) { S.ticker[i].is_active = active; }
 
-function addTickerItem() {
-  if (S.ticker.length >= 8) return toast('Maximum 8 items dans le ticker', 'info');
-  S.ticker.push({ cat: 'Instagram', color: '#E1306C', title: '' });
+async function addTickerItem() {
+  if (S.ticker.length >= 8) return toast('Maximum 8 items', 'i');
+  const newItem = { cat: 'Instagram', color: '#E1306C', title: '', is_active: true, sort_order: S.ticker.length };
+  try {
+    const saved = await api('POST', '/api/ticker', { category: newItem.cat, color: newItem.color, title: newItem.title, is_active: true, sort_order: newItem.sort_order });
+    S.ticker.push({ id: saved.id, ...newItem });
+  } catch { S.ticker.push(newItem); }
   renderTicker();
 }
 
-function removeTicker(i) {
+async function removeTicker(i) {
+  const item = S.ticker[i];
+  if (item && item.id) { try { await api('DELETE', `/api/ticker/${item.id}`); } catch {} }
   S.ticker.splice(i, 1);
   renderTicker();
+  toast('Item supprimé');
 }
 
 async function saveTicker() {
-  // Pour l'instant on copie le code à mettre dans server.js
-  const code = `res.locals.ticker = ${JSON.stringify(S.ticker, null, 2)};`;
-  await navigator.clipboard.writeText(code).catch(()=>{});
-  toast('Code ticker copié dans le presse-papier ! Collez-le dans server.js', 'info');
+  toast('💾 Sauvegarde en cours…', 'i');
+  let saved = 0, errors = 0;
+  for (let i = 0; i < S.ticker.length; i++) {
+    const item = S.ticker[i];
+    const body = { category: item.cat, color: item.color || PLATFORM_COLORS[item.cat] || '#888', title: item.title, is_active: item.is_active !== false, sort_order: i };
+    try {
+      if (item.id) { await api('PUT', `/api/ticker/${item.id}`, body); }
+      else { const r = await api('POST', '/api/ticker', body); S.ticker[i].id = r.id; }
+      saved++;
+    } catch { errors++; }
+  }
+  if (errors) toast(`${saved} sauvegardés, ${errors} erreurs`, 'e');
+  else toast(`✅ Ticker sauvegardé (${saved} items) — VU Magazine mis à jour en temps réel !`);
 }
 
-
-// ── COMPAT V2 HELPERS ──────────────────────────────────────────────
-function escHtml(s) { return esc(s); }
-function escAttr(s) { return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
-function closeModal(id) { closeMod(id); }
-function goTo(page) { go(page); }
-
-
-
-// ─ DEBOUNCE AGENT ──────────────────────────────────────────────
+// ── DEBOUNCE AGENT ──────────────────────────────────────────────
 let _agentRunning = false;
 function agentGuard(fn) {
   return async function(...args) {
     if (_agentRunning) { toast('Un agent est déjà en cours…', 'i'); return; }
     _agentRunning = true;
-    try { await fn(...args); }
-    finally { _agentRunning = false; }
+    try { await fn(...args); } finally { _agentRunning = false; }
   };
 }
-// Wrapper les fonctions agents
-const _runAgentOrig = runAgent;
-const _runOptOrig   = runOpt;
-const _quickAgentOrig = quickAgent;
+const _runAgentOrig = runAgent, _runOptOrig = runOpt, _quickAgentOrig = quickAgent;
 runAgent    = agentGuard(_runAgentOrig);
 runOpt      = agentGuard(_runOptOrig);
 quickAgent  = agentGuard(_quickAgentOrig);
 
 initDate();
 go('dashboard');
-
-
 </script>
 </body>
 </html>
